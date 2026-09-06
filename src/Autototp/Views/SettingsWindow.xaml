@@ -31,6 +31,10 @@
                                   Content="Autostart mit Windows"
                                   Style="{StaticResource FluentCheckBox}"
                                   Click="OnAutostartChanged" />
+                        <CheckBox x:Name="StartMinimizedBox"
+                                  Content="Beim Start im Infobereich belassen"
+                                  Style="{StaticResource FluentCheckBox}"
+                                  Click="OnStartMinimizedChanged" />
                         <CheckBox x:Name="SendEnterBox"
                                   Content="Nach dem Code {ENTER} senden"
                                   Style="{StaticResource FluentCheckBox}"

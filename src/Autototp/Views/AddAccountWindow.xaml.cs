@@ -44,6 +44,14 @@ public partial class AddAccountWindow : Window
     private string CurrentSecret =>
         ShowSecretBox.IsChecked == true ? SecretPlainBox.Text : SecretBox.Password;
 
+    private void OnIssuerLostFocus(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(MatchBox.Text) && !string.IsNullOrWhiteSpace(IssuerBox.Text))
+        {
+            MatchBox.Text = IssuerBox.Text.Trim();
+        }
+    }
+
     private void OnToggleSecret(object sender, RoutedEventArgs e)
     {
         if (ShowSecretBox.IsChecked == true)

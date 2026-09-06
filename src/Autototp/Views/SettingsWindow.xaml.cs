@@ -16,6 +16,7 @@ public partial class SettingsWindow : Window
         _app = (App)System.Windows.Application.Current;
 
         AutostartBox.IsChecked = _app.Autostart.IsEnabled();
+        StartMinimizedBox.IsChecked = _viewModel.Settings.StartMinimized;
         SendEnterBox.IsChecked = _viewModel.Settings.SendEnterAfterCode;
         HotkeyBox.Text = _app.Hotkey.DisplayText;
         DataPathBox.Text = _app.Store.FilePath;
@@ -27,6 +28,12 @@ public partial class SettingsWindow : Window
     private void OnAutostartChanged(object sender, RoutedEventArgs e)
     {
         _app.Autostart.SetEnabled(AutostartBox.IsChecked == true);
+    }
+
+    private void OnStartMinimizedChanged(object sender, RoutedEventArgs e)
+    {
+        _viewModel.Settings.StartMinimized = StartMinimizedBox.IsChecked == true;
+        _viewModel.Persist();
     }
 
     private void OnSendEnterChanged(object sender, RoutedEventArgs e)

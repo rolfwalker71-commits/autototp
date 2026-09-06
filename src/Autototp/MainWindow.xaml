@@ -14,6 +14,10 @@
                 <TextBlock Text="TOTP-Tokens verwalten und automatisch einfügen"
                            Style="{StaticResource MutedText}"
                            Margin="0,4,0,0" />
+                <TextBlock x:Name="HotkeyHint"
+                           Text="Hotkey: Ctrl + Alt + T"
+                           Style="{StaticResource MutedText}"
+                           Margin="0,2,0,0" />
             </StackPanel>
         </DockPanel>
 
@@ -81,7 +85,10 @@
                                            Style="{StaticResource CodeText}"
                                            FontSize="22"
                                            VerticalAlignment="Center"
-                                           Margin="12,0,0,0" />
+                                           Margin="12,0,0,0"
+                                           Cursor="Hand"
+                                           ToolTip="Klicken zum Kopieren"
+                                           MouseLeftButtonUp="OnCodeClick" />
                                 <TextBlock Grid.Row="1"
                                            Grid.ColumnSpan="2"
                                            Text="{Binding Subtitle}"

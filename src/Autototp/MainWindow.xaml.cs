@@ -21,7 +21,15 @@ public partial class MainWindow : Window
         _timer.Tick += (_, _) => ViewModel.Tick();
         _timer.Start();
 
-        Loaded += (_, _) => SearchBox.Focus();
+        Loaded += (_, _) =>
+        {
+            if (System.Windows.Application.Current is App app)
+            {
+                HotkeyHint.Text = $"Hotkey: {app.Hotkey.DisplayText}";
+            }
+
+            SearchBox.Focus();
+        };
         Closed += (_, _) => _timer.Stop();
     }
 
@@ -52,9 +60,26 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnCodeClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: AccountItemViewModel account })
+        {
+            CopyCode(account);
+            e.Handled = true;
+        }
+    }
+
     private void OnCopyCode(object sender, RoutedEventArgs e)
     {
-        if (GetAccountFromSender(sender) is { } account && account.CurrentCode.All(char.IsDigit))
+        if (GetAccountFromSender(sender) is { } account)
+        {
+            CopyCode(account);
+        }
+    }
+
+    private static void CopyCode(AccountItemViewModel account)
+    {
+        if (account.CurrentCode.All(char.IsDigit))
         {
             Clipboard.SetText(account.CurrentCode);
         }

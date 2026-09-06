@@ -1,6 +1,6 @@
 using System.IO;
+using System.Threading;
 using System.Windows;
-using Autototp.Models;
 using Autototp.Services;
 using Autototp.ViewModels;
 using Autototp.Views;
@@ -15,6 +15,7 @@ public partial class App : System.Windows.Application
     private readonly AutostartService _autostart = new();
     private readonly HotkeyService _hotkey = new();
     private readonly AutoFillService _autoFill;
+    private SingleInstanceService? _singleInstance;
     private MainViewModel _viewModel = null!;
     private MainWindow? _mainWindow;
     private TaskbarIcon? _tray;
@@ -36,20 +37,41 @@ public partial class App : System.Windows.Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        _singleInstance = new SingleInstanceService();
+        if (!_singleInstance.IsPrimary)
+        {
+            try
+            {
+                SingleInstanceService.SignalShowMainWindow();
+            }
+            catch (WaitHandleCannotBeOpenedException)
+            {
+                // The first instance is shutting down.
+            }
+
+            Shutdown();
+            return;
+        }
+
         ApplyTheme();
 
         var data = _store.Load();
         _viewModel = new MainViewModel(_store, _encryption, data);
 
         _hotkey.Pressed += OnHotkeyPressed;
+        _tray = CreateTrayIcon();
         if (!_hotkey.Register(data.Settings))
         {
-            // Registration can fail if another app owns Ctrl+Alt+T.
+            _tray.ShowBalloonTip(
+                "Autototp",
+                $"Hotkey {_hotkey.DisplayText} ist belegt und konnte nicht registriert werden.",
+                BalloonIcon.Warning);
         }
 
-        _tray = CreateTrayIcon();
         _mainWindow = new MainWindow(_viewModel);
         _mainWindow.Closing += OnMainWindowClosing;
+        _singleInstance.ListenForActivation(() => Dispatcher.Invoke(ShowMainWindow));
 
         var startMinimized = data.Settings.StartMinimized
             || e.Args.Any(a => a.Equals("--minimized", StringComparison.OrdinalIgnoreCase));
@@ -82,6 +104,8 @@ public partial class App : System.Windows.Application
         _isExiting = true;
         _hotkey.Dispose();
         _tray?.Dispose();
+        _trayIconStream?.Dispose();
+        _singleInstance?.Dispose();
         Shutdown();
     }
 
@@ -114,6 +138,13 @@ public partial class App : System.Windows.Application
 
     private void HandleAutoFill()
     {
+        if (_viewModel.Accounts.Count == 0)
+        {
+            _tray?.ShowBalloonTip("Autototp", "Keine Accounts gespeichert.", BalloonIcon.Info);
+            ShowMainWindow();
+            return;
+        }
+
         var hwnd = NativeWindowService.ForegroundWindow;
         var title = NativeWindowService.GetWindowTitle(hwnd);
         var matches = _autoFill.FindMatches(_viewModel.Data.Accounts, title, _viewModel.Settings.MasterPassword);
@@ -200,6 +231,8 @@ public partial class App : System.Windows.Application
     {
         _hotkey.Dispose();
         _tray?.Dispose();
+        _trayIconStream?.Dispose();
+        _singleInstance?.Dispose();
         base.OnExit(e);
     }
 }
