@@ -6,6 +6,12 @@ public sealed class TotpAccount
 
     public string Name { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Login/account from 2FAS <c>otp.account</c> or an otpauth label (e.g. email).
+    /// Shown as the second line on list cards. Empty until import or edit.
+    /// </summary>
+    public string AccountLogin { get; set; } = string.Empty;
+
     public string Issuer { get; set; } = string.Empty;
 
     /// <summary>

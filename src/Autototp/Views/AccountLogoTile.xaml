@@ -6,7 +6,7 @@
         <Image Source="pack://application:,,,/Assets/default-logo.png"
                Stretch="Uniform"
                Visibility="{Binding HasCustomLogo, Converter={StaticResource InverseBoolToVis}}" />
-        <Border CornerRadius="6"
+        <Border CornerRadius="7.5"
                 ClipToBounds="True"
                 Visibility="{Binding HasCustomLogo, Converter={StaticResource BoolToVis}}">
             <Border.Background>

@@ -33,6 +33,7 @@ public partial class AddAccountWindow : Window
             Title = "Account bearbeiten";
             TitleText.Text = "Account bearbeiten";
             NameBox.Text = existing.Model.Name;
+            AccountBox.Text = existing.Model.AccountLogin;
             IssuerBox.Text = existing.Model.Issuer;
             MatchBox.Text = existing.Model.WindowTitleMatch;
             if (existing.PlaintextSecret is not null)
@@ -161,6 +162,7 @@ public partial class AddAccountWindow : Window
         {
             Id = id,
             Name = name,
+            AccountLogin = AccountBox.Text.Trim(),
             Issuer = IssuerBox.Text.Trim(),
             WindowTitleMatch = MatchBox.Text.Trim(),
             Digits = _existing?.Model.Digits ?? 6,

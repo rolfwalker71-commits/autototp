@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Autototp.Services;
 using Autototp.ViewModels;
 
@@ -13,6 +14,7 @@ public partial class QuickPickerWindow : Window
 {
     private readonly IReadOnlyList<AccountItemViewModel> _all;
     private readonly HashSet<Guid> _preferredIds;
+    private readonly DispatcherTimer _timer;
 
     public AccountItemViewModel? SelectedAccount { get; private set; }
 
@@ -28,8 +30,19 @@ public partial class QuickPickerWindow : Window
         InitializeComponent();
         ApplyFilter(FilterBox.Text);
 
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
+        _timer.Tick += (_, _) =>
+        {
+            foreach (var account in _all)
+            {
+                account.RefreshCode();
+            }
+        };
+        _timer.Start();
+
         SourceInitialized += (_, _) => NativeWindowService.StealFocus(this, keepTopmost: true);
         Loaded += OnLoaded;
+        Closed += (_, _) => _timer.Stop();
         PreviewKeyDown += OnPreviewKey;
     }
 

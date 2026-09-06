@@ -12,6 +12,7 @@ public sealed class ImportedAccount : System.ComponentModel.INotifyPropertyChang
     private string _windowTitleMatch = string.Empty;
 
     public string Name { get; init; } = string.Empty;
+    public string AccountLogin { get; init; } = string.Empty;
     public string Issuer { get; init; } = string.Empty;
     public string Secret { get; init; } = string.Empty;
     public int Digits { get; init; } = 6;
@@ -199,10 +200,12 @@ public sealed class ImportService
 
         var issuer = FirstNonEmpty(issuerFromQuery, labelIssuer);
         var name = FirstNonEmpty(labelAccount, label, issuer, "Account");
+        var accountLogin = labelAccount.Trim();
 
         account = new ImportedAccount
         {
             Name = name,
+            AccountLogin = accountLogin,
             Issuer = issuer,
             Secret = secret,
             WindowTitleMatch = issuer,
@@ -239,10 +242,14 @@ public sealed class ImportService
             ReadString(otp, "issuer"),
             "Account");
         var issuer = FirstNonEmpty(ReadString(otp, "issuer"), name);
+        var accountLogin = FirstNonEmpty(
+            ReadString(otp, "account"),
+            ReadString(service, "account"));
 
         account = new ImportedAccount
         {
             Name = name,
+            AccountLogin = accountLogin,
             Issuer = issuer,
             Secret = secret,
             WindowTitleMatch = issuer,

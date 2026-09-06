@@ -11,6 +11,7 @@
             <converters:BooleanToVisibilityConverter x:Key="BoolToVis" />
             <converters:BooleanToVisibilityConverter x:Key="InverseBoolToVis" Invert="True" />
             <converters:NullOrEmptyToVisibilityConverter x:Key="InverseStringToVis" />
+            <converters:NullOrEmptyToVisibilityConverter x:Key="StringToVis" Invert="True" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

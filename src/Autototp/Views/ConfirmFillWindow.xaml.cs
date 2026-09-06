@@ -25,7 +25,7 @@ public partial class ConfirmFillWindow : Window
             : $"Fenster: {foregroundTitle.Trim()}";
         ConfirmButton.Content = sendEnter ? "Einfügen + Enter" : "Einfügen";
 
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
         _timer.Tick += (_, _) => account.RefreshCode();
         _timer.Start();
 

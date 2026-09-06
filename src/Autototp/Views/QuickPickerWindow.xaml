@@ -59,16 +59,15 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <views:AccountLogoTile Grid.Row="0"
-                                                       Width="32"
-                                                       Height="32"
+                                                       Width="40"
+                                                       Height="40"
                                                        Margin="0,0,10,0"
                                                        VerticalAlignment="Top" />
                                 <StackPanel Grid.Row="0" Grid.Column="1">
-                                    <TextBlock Text="{Binding Name}" Style="{StaticResource AccountNameText}" FontSize="15" />
+                                    <TextBlock Text="{Binding Name}" Style="{StaticResource AccountNameText}" />
                                     <TextBlock Text="{Binding Subtitle}" Style="{StaticResource MutedText}" />
                                     <TextBlock Text="{Binding FormattedCode}"
                                                Style="{StaticResource CodeText}"
-                                               FontSize="18"
                                                Margin="0,4,0,0" />
                                 </StackPanel>
                                 <ProgressBar Grid.Row="1"

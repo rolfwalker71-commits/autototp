@@ -209,7 +209,7 @@
     </Style>
 
     <Style x:Key="AccountNameText" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontSize" Value="21" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
@@ -237,9 +237,14 @@
 
     <Style x:Key="CodeText" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
-        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontSize" Value="17" />
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Foreground" Value="{DynamicResource CodeBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsExpiringSoon}" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+            </DataTrigger>
+        </Style.Triggers>
     </Style>
 
     <Style x:Key="FluentProgress" TargetType="ProgressBar">
@@ -250,16 +255,23 @@
         <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
         <Setter Property="Background" Value="{DynamicResource ProgressTrackBrush}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="SnapsToDevicePixels" Value="False" />
+        <Setter Property="UseLayoutRounding" Value="False" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ProgressBar">
-                    <Grid ClipToBounds="True" SnapsToDevicePixels="True">
+                    <Grid ClipToBounds="True"
+                          SnapsToDevicePixels="False"
+                          UseLayoutRounding="False">
                         <Border Background="{TemplateBinding Background}" CornerRadius="2" />
-                        <Rectangle x:Name="PART_Track" Fill="Transparent" />
-                        <Decorator x:Name="PART_Indicator" HorizontalAlignment="Left">
-                            <Border Background="{TemplateBinding Foreground}" CornerRadius="2" />
-                        </Decorator>
+                        <Border Background="{TemplateBinding Foreground}"
+                                CornerRadius="2"
+                                HorizontalAlignment="Stretch"
+                                RenderTransformOrigin="0,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleX="{Binding Value, RelativeSource={RelativeSource TemplatedParent}}" />
+                            </Border.RenderTransform>
+                        </Border>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

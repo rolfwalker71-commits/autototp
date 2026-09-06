@@ -92,6 +92,7 @@ public sealed class MainViewModel : ViewModelBase
             var account = new TotpAccount
             {
                 Name = item.Name.Trim(),
+                AccountLogin = item.AccountLogin.Trim(),
                 Issuer = item.Issuer.Trim(),
                 WindowTitleMatch = item.WindowTitleMatch.Trim(),
                 EncryptedSecret = _encryption.ProtectSecret(TotpGenerator.NormalizeSecret(item.Secret), Settings.MasterPassword),
@@ -133,6 +134,7 @@ public sealed class MainViewModel : ViewModelBase
             }
 
             existing.Name = model.Name;
+            existing.AccountLogin = model.AccountLogin;
             existing.Issuer = model.Issuer;
             existing.WindowTitleMatch = model.WindowTitleMatch;
             existing.EncryptedSecret = model.EncryptedSecret;

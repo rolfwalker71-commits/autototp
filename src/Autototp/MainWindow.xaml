@@ -35,7 +35,7 @@
             <TextBox x:Name="SearchBox"
                      Style="{StaticResource FluentTextBox}"
                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock Text="Suchen nach Name, Aussteller oder Fenstertitel…"
+            <TextBlock Text="Suchen nach Name, Account oder Fenstertitel…"
                        IsHitTestVisible="False"
                        Foreground="{DynamicResource TextSecondaryBrush}"
                        VerticalAlignment="Center"
@@ -84,21 +84,24 @@
                                 </Grid.ColumnDefinitions>
 
                                 <views:AccountLogoTile Grid.Row="0"
-                                                       Width="36"
-                                                       Height="36"
+                                                       Width="45"
+                                                       Height="45"
                                                        Margin="0,0,12,0"
-                                                       VerticalAlignment="Top" />
-                                <StackPanel Grid.Row="0" Grid.Column="1">
-                                    <TextBlock Text="{Binding Name}" Style="{StaticResource AccountNameText}" />
-                                    <TextBlock Text="{Binding Subtitle}"
+                                                       VerticalAlignment="Center" />
+                                <StackPanel Grid.Row="0"
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Name}"
+                                               Style="{StaticResource AccountNameText}" />
+                                    <TextBlock Text="{Binding AccountLogin}"
                                                Style="{StaticResource MutedText}"
-                                               Margin="0,1,0,0" />
+                                               Margin="0,2,0,0"
+                                               Visibility="{Binding AccountLogin, Converter={StaticResource StringToVis}}" />
                                 </StackPanel>
                                 <TextBlock Grid.Row="0"
                                            Grid.Column="2"
                                            Text="{Binding FormattedCode}"
                                            Style="{StaticResource CodeText}"
-                                           FontSize="22"
                                            VerticalAlignment="Center"
                                            Margin="12,0,0,0"
                                            Cursor="Hand"

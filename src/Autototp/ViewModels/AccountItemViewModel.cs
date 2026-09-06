@@ -10,6 +10,7 @@ public sealed class AccountItemViewModel : ViewModelBase
     private string _formattedCode = "--- ---";
     private int _remainingSeconds = 30;
     private double _progress = 1;
+    private bool _isExpiringSoon;
     private bool _secretAvailable = true;
     private ImageSource? _logoImage;
 
@@ -29,6 +30,8 @@ public sealed class AccountItemViewModel : ViewModelBase
     public Guid Id => Model.Id;
 
     public string Name => string.IsNullOrWhiteSpace(Model.Name) ? "Account" : Model.Name;
+
+    public string AccountLogin => Model.AccountLogin?.Trim() ?? string.Empty;
 
     public string Issuer => Model.Issuer;
 
@@ -103,6 +106,12 @@ public sealed class AccountItemViewModel : ViewModelBase
         private set => SetProperty(ref _progress, value);
     }
 
+    public bool IsExpiringSoon
+    {
+        get => _isExpiringSoon;
+        private set => SetProperty(ref _isExpiringSoon, value);
+    }
+
     public bool SecretAvailable
     {
         get => _secretAvailable;
@@ -114,6 +123,7 @@ public sealed class AccountItemViewModel : ViewModelBase
     public void NotifyLabels()
     {
         OnPropertyChanged(nameof(Name));
+        OnPropertyChanged(nameof(AccountLogin));
         OnPropertyChanged(nameof(Issuer));
         OnPropertyChanged(nameof(WindowTitleMatch));
         OnPropertyChanged(nameof(Subtitle));
@@ -125,6 +135,7 @@ public sealed class AccountItemViewModel : ViewModelBase
     {
         RemainingSeconds = TotpGenerator.RemainingSeconds(Model.Period);
         Progress = TotpGenerator.Progress(Model.Period);
+        IsExpiringSoon = RemainingSeconds <= 10;
 
         if (string.IsNullOrEmpty(PlaintextSecret))
         {
@@ -157,6 +168,7 @@ public sealed class AccountItemViewModel : ViewModelBase
         }
 
         return Name.Contains(filter, StringComparison.OrdinalIgnoreCase)
+            || AccountLogin.Contains(filter, StringComparison.OrdinalIgnoreCase)
             || Issuer.Contains(filter, StringComparison.OrdinalIgnoreCase)
             || WindowTitleMatch.Contains(filter, StringComparison.OrdinalIgnoreCase);
     }

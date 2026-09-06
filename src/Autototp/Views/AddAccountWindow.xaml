@@ -27,6 +27,12 @@
                 <TextBlock Text="Name" Style="{StaticResource FieldLabel}" />
                 <TextBox x:Name="NameBox" Style="{StaticResource FluentTextBox}" Margin="0,0,0,12" />
 
+                <TextBlock Text="Account" Style="{StaticResource FieldLabel}" />
+                <TextBox x:Name="AccountBox" Style="{StaticResource FluentTextBox}" Margin="0,0,0,8" />
+                <TextBlock Text="Optional. Erscheint als zweite Zeile auf den Listen-Karten (z. B. E-Mail oder Login)."
+                           Style="{StaticResource MutedText}"
+                           Margin="0,0,0,12" />
+
                 <TextBlock Text="Aussteller / Service" Style="{StaticResource FieldLabel}" />
                 <TextBox x:Name="IssuerBox" Style="{StaticResource FluentTextBox}" Margin="0,0,0,12" LostFocus="OnIssuerLostFocus" />
 

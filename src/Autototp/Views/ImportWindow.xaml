@@ -79,6 +79,9 @@
                                           Margin="0,0,10,0" />
                                 <StackPanel>
                                     <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding AccountLogin}"
+                                               Style="{StaticResource MutedText}"
+                                               Visibility="{Binding AccountLogin, Converter={StaticResource StringToVis}}" />
                                     <TextBlock Text="{Binding Issuer}" Style="{StaticResource MutedText}" />
                                     <TextBox Text="{Binding WindowTitleMatch, UpdateSourceTrigger=PropertyChanged}"
                                              Style="{StaticResource FluentTextBox}"

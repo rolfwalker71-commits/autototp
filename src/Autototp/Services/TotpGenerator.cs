@@ -54,18 +54,25 @@ public static class TotpGenerator
         return totp.ComputeTotp();
     }
 
+    public static double RemainingExact(int period = 30)
+    {
+        var step = period <= 0 ? 30 : period;
+        var elapsed = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000.0 % step;
+        return step - elapsed;
+    }
+
     public static int RemainingSeconds(int period = 30)
     {
         var step = period <= 0 ? 30 : period;
-        var unix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        var elapsed = (int)(unix % step);
-        return step - elapsed;
+        var remaining = RemainingExact(step);
+        var seconds = (int)Math.Ceiling(remaining);
+        return seconds <= 0 ? step : seconds;
     }
 
     public static double Progress(int period = 30)
     {
         var step = period <= 0 ? 30 : period;
-        return RemainingSeconds(step) / (double)step;
+        return RemainingExact(step) / step;
     }
 
     public static Totp CreateTotp(string secret, int digits = 6, int period = 30, string algorithm = "SHA1")

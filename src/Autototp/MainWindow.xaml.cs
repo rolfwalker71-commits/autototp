@@ -17,7 +17,7 @@ public partial class MainWindow : Window
         DataContext = viewModel;
         ViewModel = viewModel;
 
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
         _timer.Tick += (_, _) => ViewModel.Tick();
         _timer.Start();
 
