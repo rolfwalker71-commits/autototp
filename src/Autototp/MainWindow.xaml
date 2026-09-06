@@ -11,19 +11,14 @@
         WindowStartupLocation="CenterScreen">
     <DockPanel Margin="16">
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16">
-            <Border Style="{StaticResource LogoTile}"
-                    Width="32"
-                    Height="32"
-                    DockPanel.Dock="Left"
-                    Margin="0,0,12,0"
-                    VerticalAlignment="Top">
-                <TextBlock Text="T"
-                           Foreground="{DynamicResource LogoTileTextBrush}"
-                           FontWeight="SemiBold"
-                           FontSize="16"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center" />
-            </Border>
+            <Image Source="pack://application:,,,/Assets/default-logo.png"
+                   Width="32"
+                   Height="32"
+                   DockPanel.Dock="Left"
+                   Margin="0,0,12,0"
+                   VerticalAlignment="Top"
+                   Stretch="Uniform"
+                   RenderOptions.BitmapScalingMode="HighQuality" />
             <StackPanel>
                 <TextBlock Text="Autototp" Style="{StaticResource SectionTitle}" />
                 <TextBlock Text="TOTP-Tokens verwalten und automatisch einfügen"

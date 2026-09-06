@@ -25,7 +25,7 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel>
                 <TextBlock Text="Name" Style="{StaticResource FieldLabel}" />
-                <TextBox x:Name="NameBox" Style="{StaticResource FluentTextBox}" Margin="0,0,0,12" TextChanged="OnNameChanged" />
+                <TextBox x:Name="NameBox" Style="{StaticResource FluentTextBox}" Margin="0,0,0,12" />
 
                 <TextBlock Text="Aussteller / Service" Style="{StaticResource FieldLabel}" />
                 <TextBox x:Name="IssuerBox" Style="{StaticResource FluentTextBox}" Margin="0,0,0,12" LostFocus="OnIssuerLostFocus" />
@@ -48,40 +48,36 @@
                            Style="{StaticResource MutedText}"
                            Margin="0,0,0,16" />
 
-                <TextBlock Text="Logo (optional)" Style="{StaticResource FieldLabel}" />
-                <DockPanel Margin="0,0,0,6" LastChildFill="False">
-                    <Grid Width="48" Height="48" Margin="0,0,12,0" VerticalAlignment="Center">
-                        <Border x:Name="LogoInitialTile"
-                                Style="{StaticResource LogoTile}">
-                            <TextBlock x:Name="LogoInitialText"
-                                       Text="?"
-                                       Foreground="{DynamicResource LogoTileTextBrush}"
-                                       FontWeight="SemiBold"
-                                       FontSize="18"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" />
-                        </Border>
-                        <Border x:Name="LogoImageTile"
-                                CornerRadius="6"
-                                Visibility="Collapsed">
-                            <Border.Background>
-                                <ImageBrush x:Name="LogoPreviewBrush" Stretch="UniformToFill" />
-                            </Border.Background>
-                        </Border>
-                    </Grid>
-                    <Button Content="Logo wählen…"
-                            Style="{StaticResource FluentButton}"
+                <TextBlock Text="Logo" Style="{StaticResource FieldLabel}" />
+                <DockPanel Margin="0,0,0,6">
+                    <Border x:Name="LogoImageTile"
+                            DockPanel.Dock="Left"
+                            Width="48"
+                            Height="48"
+                            Margin="0,0,12,0"
                             VerticalAlignment="Center"
-                            Click="OnChooseLogo"
-                            Margin="0,0,8,0" />
-                    <Button x:Name="RemoveLogoButton"
-                            Content="Logo entfernen"
-                            Style="{StaticResource FluentButton}"
-                            VerticalAlignment="Center"
-                            Click="OnRemoveLogo"
-                            IsEnabled="False" />
+                            CornerRadius="6"
+                            ClipToBounds="True">
+                        <Border.Background>
+                            <ImageBrush x:Name="LogoPreviewBrush" Stretch="Uniform" />
+                        </Border.Background>
+                    </Border>
+                    <WrapPanel VerticalAlignment="Center">
+                        <Button Content="Logo wählen…"
+                                Style="{StaticResource FluentButton}"
+                                VerticalAlignment="Center"
+                                Click="OnChooseLogo"
+                                Margin="0,0,8,4" />
+                        <Button x:Name="ResetLogoButton"
+                                Content="Zurück zum Standardlogo"
+                                Style="{StaticResource FluentButton}"
+                                VerticalAlignment="Center"
+                                Click="OnResetLogo"
+                                IsEnabled="False"
+                                Margin="0,0,0,4" />
+                    </WrapPanel>
                 </DockPanel>
-                <TextBlock Text="PNG, JPEG, ICO, BMP oder GIF. Wird als kompaktes PNG im Datenordner gespeichert."
+                <TextBlock Text="Ohne eigenes Bild gilt das Autototp-Badge. PNG, JPEG, ICO, BMP oder GIF werden als kompaktes PNG gespeichert."
                            Style="{StaticResource MutedText}"
                            Margin="0,0,0,16" />
 

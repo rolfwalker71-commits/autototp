@@ -100,7 +100,10 @@ public sealed class MainViewModel : ViewModelBase
                 Algorithm = item.Algorithm,
             };
             _data.Accounts.Add(account);
-            Accounts.Add(new AccountItemViewModel(account, TotpGenerator.NormalizeSecret(item.Secret), null));
+            Accounts.Add(new AccountItemViewModel(
+                account,
+                TotpGenerator.NormalizeSecret(item.Secret),
+                _logos.LoadImage(null)));
         }
 
         Persist();

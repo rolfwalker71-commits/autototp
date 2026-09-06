@@ -26,23 +26,44 @@
                      Margin="0,0,0,8"
                      TextChanged="OnFilterChanged" />
             <TextBlock DockPanel.Dock="Bottom"
-                       Text="Enter = einfügen   Esc = schließen"
+                       Text="Enter = einfügen   Esc = schließen   Suche = alle Accounts"
                        Style="{StaticResource MutedText}"
                        Margin="0,8,0,0" />
             <ListBox x:Name="AccountList"
                      Style="{StaticResource AccountListBox}"
                      MouseDoubleClick="OnAccountActivate"
                      KeyDown="OnListKeyDown">
+                <ListBox.GroupStyle>
+                    <GroupStyle>
+                        <GroupStyle.HeaderTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}"
+                                           Style="{StaticResource MutedText}"
+                                           FontWeight="SemiBold"
+                                           Margin="2,8,2,6" />
+                            </DataTemplate>
+                        </GroupStyle.HeaderTemplate>
+                    </GroupStyle>
+                </ListBox.GroupStyle>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Border Style="{StaticResource AccountCard}" Padding="10" Margin="0,0,0,6">
-                            <DockPanel>
-                                <views:AccountLogoTile DockPanel.Dock="Left"
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <views:AccountLogoTile Grid.Row="0"
                                                        Width="32"
                                                        Height="32"
                                                        Margin="0,0,10,0"
                                                        VerticalAlignment="Top" />
-                                <StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="1">
                                     <TextBlock Text="{Binding Name}" Style="{StaticResource AccountNameText}" FontSize="15" />
                                     <TextBlock Text="{Binding Subtitle}" Style="{StaticResource MutedText}" />
                                     <TextBlock Text="{Binding FormattedCode}"
@@ -50,7 +71,18 @@
                                                FontSize="18"
                                                Margin="0,4,0,0" />
                                 </StackPanel>
-                            </DockPanel>
+                                <ProgressBar Grid.Row="1"
+                                             Grid.ColumnSpan="2"
+                                             Style="{StaticResource FluentProgress}"
+                                             Value="{Binding Progress, Mode=OneWay}"
+                                             Margin="0,8,0,0" />
+                                <TextBlock Grid.Row="2"
+                                           Grid.ColumnSpan="2"
+                                           Text="{Binding RemainingSeconds, StringFormat={}{0}s}"
+                                           Style="{StaticResource MutedText}"
+                                           Foreground="{DynamicResource SecondaryBrush}"
+                                           Margin="0,4,0,0" />
+                            </Grid>
                         </Border>
                     </DataTemplate>
                 </ListBox.ItemTemplate>

@@ -151,6 +151,7 @@ public partial class App : System.Windows.Application
             : NativeWindowService.GetWindowTitle(hwnd);
         var matches = _autoFill.FindMatches(_viewModel.Data.Accounts, title, _viewModel.Settings.MasterPassword);
         var sendEnter = _viewModel.Settings.SendEnterAfterCode;
+        var preferredIds = matches.Select(m => m.Account.Id).ToList();
 
         if (matches.Count == 1)
         {
@@ -166,40 +167,24 @@ public partial class App : System.Windows.Application
             if (confirm.ShowDialog() == true && account.PlaintextSecret is not null)
             {
                 _autoFill.TypeCode(match.Secret, match.Account, sendEnter, hwnd);
-            }
-            else
-            {
-                NativeWindowService.ForceForeground(hwnd);
-            }
-
-            return;
-        }
-
-        if (matches.Count > 1)
-        {
-            var candidates = _viewModel.Accounts
-                .Where(a => matches.Any(m => m.Account.Id == a.Id))
-                .ToList();
-            if (candidates.Count == 0)
-            {
-                ShowMainWindow();
                 return;
             }
-
-            var picker = new QuickPickerWindow(candidates);
-            if (picker.ShowDialog() == true && picker.SelectedAccount is { } selected && selected.PlaintextSecret is not null)
-            {
-                _autoFill.TypeCode(selected.PlaintextSecret, selected.Model, sendEnter, hwnd);
-            }
-            else
-            {
-                NativeWindowService.ForceForeground(hwnd);
-            }
-
-            return;
         }
 
-        ShowMainWindow();
+        ShowQuickPicker(preferredIds, sendEnter, hwnd);
+    }
+
+    private void ShowQuickPicker(IReadOnlyCollection<Guid> preferredIds, bool sendEnter, nint hwnd)
+    {
+        var picker = new QuickPickerWindow(_viewModel.Accounts, preferredIds);
+        if (picker.ShowDialog() == true && picker.SelectedAccount is { } selected && selected.PlaintextSecret is not null)
+        {
+            _autoFill.TypeCode(selected.PlaintextSecret, selected.Model, sendEnter, hwnd);
+        }
+        else
+        {
+            NativeWindowService.ForceForeground(hwnd);
+        }
     }
 
     private TaskbarIcon CreateTrayIcon()

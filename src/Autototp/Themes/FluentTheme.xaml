@@ -246,18 +246,20 @@
         <Setter Property="Height" Value="5" />
         <Setter Property="Minimum" Value="0" />
         <Setter Property="Maximum" Value="1" />
+        <Setter Property="IsIndeterminate" Value="False" />
         <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
         <Setter Property="Background" Value="{DynamicResource ProgressTrackBrush}" />
         <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ProgressBar">
-                    <Grid>
+                    <Grid ClipToBounds="True" SnapsToDevicePixels="True">
                         <Border Background="{TemplateBinding Background}" CornerRadius="2" />
-                        <Border x:Name="PART_Indicator"
-                                HorizontalAlignment="Left"
-                                Background="{TemplateBinding Foreground}"
-                                CornerRadius="2" />
+                        <Rectangle x:Name="PART_Track" Fill="Transparent" />
+                        <Decorator x:Name="PART_Indicator" HorizontalAlignment="Left">
+                            <Border Background="{TemplateBinding Foreground}" CornerRadius="2" />
+                        </Decorator>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

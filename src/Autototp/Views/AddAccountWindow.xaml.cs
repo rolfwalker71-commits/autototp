@@ -41,13 +41,20 @@ public partial class AddAccountWindow : Window
                 SecretPlainBox.Text = existing.PlaintextSecret;
             }
 
-            if (existing.LogoImage is not null)
+            if (existing.HasCustomLogo && existing.LogoImage is not null)
             {
-                ShowLogoPreview(existing.LogoImage);
+                ShowCustomLogoPreview(existing.LogoImage);
+            }
+            else
+            {
+                ShowDefaultLogoPreview();
             }
         }
+        else
+        {
+            ShowDefaultLogoPreview();
+        }
 
-        UpdateLogoInitial();
         Closed += (_, _) => _previewTimer.Stop();
         SecretBox.PasswordChanged += (_, _) => UpdatePreview();
         SecretPlainBox.TextChanged += (_, _) => UpdatePreview();
@@ -55,9 +62,6 @@ public partial class AddAccountWindow : Window
 
     private string CurrentSecret =>
         ShowSecretBox.IsChecked == true ? SecretPlainBox.Text : SecretBox.Password;
-
-    private void OnNameChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) =>
-        UpdateLogoInitial();
 
     private void OnIssuerLostFocus(object sender, RoutedEventArgs e)
     {
@@ -107,14 +111,14 @@ public partial class AddAccountWindow : Window
 
         _pendingLogoPath = dialog.FileName;
         _clearLogo = false;
-        ShowLogoPreview(image);
+        ShowCustomLogoPreview(image);
     }
 
-    private void OnRemoveLogo(object sender, RoutedEventArgs e)
+    private void OnResetLogo(object sender, RoutedEventArgs e)
     {
         _pendingLogoPath = null;
         _clearLogo = true;
-        ClearLogoPreview();
+        ShowDefaultLogoPreview();
     }
 
     private void OnSave(object sender, RoutedEventArgs e)
@@ -168,27 +172,18 @@ public partial class AddAccountWindow : Window
         DialogResult = true;
     }
 
-    private void ShowLogoPreview(ImageSource image)
+    private void ShowCustomLogoPreview(ImageSource image)
     {
         LogoPreviewBrush.ImageSource = image;
-        LogoImageTile.Visibility = Visibility.Visible;
-        LogoInitialTile.Visibility = Visibility.Collapsed;
-        RemoveLogoButton.IsEnabled = true;
+        LogoPreviewBrush.Stretch = Stretch.UniformToFill;
+        ResetLogoButton.IsEnabled = true;
     }
 
-    private void ClearLogoPreview()
+    private void ShowDefaultLogoPreview()
     {
-        LogoPreviewBrush.ImageSource = null;
-        LogoImageTile.Visibility = Visibility.Collapsed;
-        LogoInitialTile.Visibility = Visibility.Visible;
-        RemoveLogoButton.IsEnabled = false;
-        UpdateLogoInitial();
-    }
-
-    private void UpdateLogoInitial()
-    {
-        var name = NameBox.Text.Trim();
-        LogoInitialText.Text = name.Length == 0 ? "?" : char.ToUpperInvariant(name[0]).ToString();
+        LogoPreviewBrush.ImageSource = LogoService.LoadDefault();
+        LogoPreviewBrush.Stretch = Stretch.Uniform;
+        ResetLogoButton.IsEnabled = false;
     }
 
     private void UpdatePreview()

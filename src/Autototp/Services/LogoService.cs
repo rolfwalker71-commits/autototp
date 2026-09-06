@@ -7,6 +7,8 @@ namespace Autototp.Services;
 public sealed class LogoService
 {
     private const int MaxEdgePixels = 256;
+    private static readonly Uri DefaultLogoUri = new("pack://application:,,,/Assets/default-logo.png");
+    private static ImageSource? _defaultLogo;
 
     public LogoService(string dataDirectory)
     {
@@ -88,10 +90,27 @@ public sealed class LogoService
         return File.Exists(combined) ? combined : null;
     }
 
-    public ImageSource? LoadImage(string? logoFileName)
+    public ImageSource LoadImage(string? logoFileName)
     {
         var path = ResolvePath(logoFileName);
-        return path is null ? null : LoadImageFromPath(path);
+        return path is null ? LoadDefault() : LoadImageFromPath(path);
+    }
+
+    public static ImageSource LoadDefault()
+    {
+        if (_defaultLogo is not null)
+        {
+            return _defaultLogo;
+        }
+
+        var image = new BitmapImage();
+        image.BeginInit();
+        image.UriSource = DefaultLogoUri;
+        image.CacheOption = BitmapCacheOption.OnLoad;
+        image.EndInit();
+        image.Freeze();
+        _defaultLogo = image;
+        return image;
     }
 
     public static ImageSource LoadImageFromPath(string path)

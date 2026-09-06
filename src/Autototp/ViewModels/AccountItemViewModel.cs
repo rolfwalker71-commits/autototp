@@ -18,7 +18,7 @@ public sealed class AccountItemViewModel : ViewModelBase
         Model = model;
         PlaintextSecret = plaintextSecret;
         _secretAvailable = !string.IsNullOrEmpty(plaintextSecret);
-        _logoImage = logo;
+        _logoImage = logo ?? LogoService.LoadDefault();
         RefreshCode();
     }
 
@@ -42,11 +42,14 @@ public sealed class AccountItemViewModel : ViewModelBase
             if (SetProperty(ref _logoImage, value))
             {
                 OnPropertyChanged(nameof(HasLogo));
+                OnPropertyChanged(nameof(HasCustomLogo));
             }
         }
     }
 
     public bool HasLogo => LogoImage is not null;
+
+    public bool HasCustomLogo => !string.IsNullOrWhiteSpace(Model.LogoFileName);
 
     public string LogoInitial
     {
@@ -115,6 +118,7 @@ public sealed class AccountItemViewModel : ViewModelBase
         OnPropertyChanged(nameof(WindowTitleMatch));
         OnPropertyChanged(nameof(Subtitle));
         OnPropertyChanged(nameof(LogoInitial));
+        OnPropertyChanged(nameof(HasCustomLogo));
     }
 
     public void RefreshCode()

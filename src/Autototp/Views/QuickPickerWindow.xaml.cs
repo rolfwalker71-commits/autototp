@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using Autototp.Services;
@@ -10,18 +11,21 @@ namespace Autototp.Views;
 public partial class QuickPickerWindow : Window
 {
     private readonly IReadOnlyList<AccountItemViewModel> _all;
+    private readonly HashSet<Guid> _preferredIds;
 
     public AccountItemViewModel? SelectedAccount { get; private set; }
 
-    public QuickPickerWindow(IReadOnlyList<AccountItemViewModel> accounts)
+    public QuickPickerWindow(
+        IReadOnlyList<AccountItemViewModel> accounts,
+        IReadOnlyCollection<Guid>? preferredMatchIds = null)
     {
-        InitializeComponent();
         _all = accounts;
-        AccountList.ItemsSource = _all;
-        if (_all.Count > 0)
-        {
-            AccountList.SelectedIndex = 0;
-        }
+        _preferredIds = preferredMatchIds is { Count: > 0 }
+            ? preferredMatchIds.ToHashSet()
+            : [];
+
+        InitializeComponent();
+        ApplyFilter(FilterBox.Text);
 
         SourceInitialized += (_, _) => NativeWindowService.StealFocus(this, keepTopmost: true);
         Loaded += OnLoaded;
@@ -42,14 +46,44 @@ public partial class QuickPickerWindow : Window
         Keyboard.Focus(FilterBox);
     }
 
-    private void OnFilterChanged(object sender, TextChangedEventArgs e)
+    private void OnFilterChanged(object sender, TextChangedEventArgs e) => ApplyFilter(FilterBox.Text);
+
+    private void ApplyFilter(string? filter)
     {
-        var filter = FilterBox.Text;
-        var filtered = _all.Where(a => a.MatchesFilter(filter)).ToList();
-        AccountList.ItemsSource = filtered;
-        if (filtered.Count > 0)
+        var query = filter ?? string.Empty;
+        var matches = new List<AccountItemViewModel>();
+        var others = new List<AccountItemViewModel>();
+        foreach (var account in _all)
         {
-            AccountList.SelectedIndex = 0;
+            if (!account.MatchesFilter(query))
+            {
+                continue;
+            }
+
+            if (_preferredIds.Contains(account.Id))
+            {
+                matches.Add(account);
+            }
+            else
+            {
+                others.Add(account);
+            }
+        }
+
+        var visible = new List<AccountItemViewModel>(matches.Count + others.Count);
+        visible.AddRange(matches);
+        visible.AddRange(others);
+
+        var view = new ListCollectionView(visible);
+        if (string.IsNullOrWhiteSpace(query) && matches.Count > 0 && others.Count > 0)
+        {
+            view.GroupDescriptions.Add(new PreferredGroupDescription(_preferredIds));
+        }
+
+        AccountList.ItemsSource = view;
+        if (visible.Count > 0)
+        {
+            AccountList.SelectedItem = visible[0];
         }
     }
 
@@ -90,5 +124,20 @@ public partial class QuickPickerWindow : Window
             SelectedAccount = account;
             DialogResult = true;
         }
+    }
+
+    private sealed class PreferredGroupDescription : GroupDescription
+    {
+        private readonly HashSet<Guid> _preferredIds;
+
+        public PreferredGroupDescription(HashSet<Guid> preferredIds)
+        {
+            _preferredIds = preferredIds;
+        }
+
+        public override object GroupNameFromItem(object item, int level, System.Globalization.CultureInfo culture) =>
+            item is AccountItemViewModel account && _preferredIds.Contains(account.Id)
+                ? "Fenstertreffer"
+                : "Alle Accounts";
     }
 }
