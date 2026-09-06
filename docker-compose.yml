@@ -1,0 +1,6 @@
+services:
+  autototp:
+    image: ghcr.io/rolfwalker71-commits/autototp:${TAG:-latest}
+    volumes:
+      - ./out:/out
+    command: ["sh", "-c", "cp -a /app/. /out/ && echo 'Extracted Autototp-win-x86.exe and Autototp-win-arm64.exe to ./out'"]

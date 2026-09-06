@@ -1,0 +1,58 @@
+<Window x:Class="Autototp.Views.AddAccountWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Account"
+        Width="440"
+        Height="520"
+        MinWidth="400"
+        MinHeight="480"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False">
+    <DockPanel Margin="20">
+        <TextBlock x:Name="TitleText"
+                   DockPanel.Dock="Top"
+                   Text="Account manuell hinzufügen"
+                   Style="{StaticResource SectionTitle}"
+                   Margin="0,0,0,16" />
+
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Abbrechen" Style="{StaticResource FluentButton}" IsCancel="True" Margin="0,0,8,0" />
+            <Button Content="Speichern" Style="{StaticResource PrimaryButton}" IsDefault="True" Click="OnSave" />
+        </StackPanel>
+
+        <StackPanel>
+            <TextBlock Text="Name" Style="{StaticResource FieldLabel}" />
+            <TextBox x:Name="NameBox" Style="{StaticResource FluentTextBox}" Margin="0,0,0,12" />
+
+            <TextBlock Text="Aussteller / Service" Style="{StaticResource FieldLabel}" />
+            <TextBox x:Name="IssuerBox" Style="{StaticResource FluentTextBox}" Margin="0,0,0,12" />
+
+            <TextBlock Text="TOTP-Secret (Base32)" Style="{StaticResource FieldLabel}" />
+            <PasswordBox x:Name="SecretBox" Style="{StaticResource FluentPasswordBox}" Margin="0,0,0,8" />
+            <CheckBox x:Name="ShowSecretBox"
+                      Content="Secret anzeigen"
+                      Style="{StaticResource FluentCheckBox}"
+                      Checked="OnToggleSecret"
+                      Unchecked="OnToggleSecret" />
+            <TextBox x:Name="SecretPlainBox"
+                     Style="{StaticResource FluentTextBox}"
+                     Visibility="Collapsed"
+                     Margin="0,0,0,12" />
+
+            <TextBlock Text="Fenstertitel-Match (z. B. Stooss, Viscosity)" Style="{StaticResource FieldLabel}" />
+            <TextBox x:Name="MatchBox" Style="{StaticResource FluentTextBox}" Margin="0,0,0,8" />
+            <TextBlock Text="Beim Hotkey wird der Titel des aktiven Fensters mit diesem Text verglichen."
+                       Style="{StaticResource MutedText}"
+                       Margin="0,0,0,16" />
+
+            <Border Style="{StaticResource FluentCard}" Padding="12">
+                <StackPanel>
+                    <TextBlock Text="Live-Vorschau" Style="{StaticResource FieldLabel}" />
+                    <TextBlock x:Name="PreviewCode" Text="--- ---" Style="{StaticResource CodeText}" FontSize="24" />
+                    <TextBlock x:Name="PreviewHint" Style="{StaticResource MutedText}" Text="Secret eingeben, um den aktuellen Code zu sehen." />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </DockPanel>
+</Window>

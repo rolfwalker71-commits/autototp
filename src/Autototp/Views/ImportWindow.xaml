@@ -1,0 +1,98 @@
+<Window x:Class="Autototp.Views.ImportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Import"
+        Width="560"
+        Height="640"
+        MinWidth="500"
+        MinHeight="520"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+    <DockPanel Margin="20">
+        <TextBlock DockPanel.Dock="Top"
+                   Text="Accounts importieren"
+                   Style="{StaticResource SectionTitle}"
+                   Margin="0,0,0,16" />
+
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Abbrechen" Style="{StaticResource FluentButton}" IsCancel="True" Margin="0,0,8,0" />
+            <Button x:Name="ImportButton"
+                    Content="Ausgewählte importieren"
+                    Style="{StaticResource PrimaryButton}"
+                    Click="OnImportSelected" />
+        </StackPanel>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="160" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                <Button Content="2FAS-Datei öffnen…"
+                        Style="{StaticResource FluentButton}"
+                        Click="OnOpen2Fas"
+                        Margin="0,0,8,0" />
+                <Button Content="otpauth:// parsen"
+                        Style="{StaticResource PrimaryButton}"
+                        Click="OnParseUris" />
+            </StackPanel>
+
+            <TextBox x:Name="UriBox"
+                     Grid.Row="1"
+                     Style="{StaticResource FluentTextBox}"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     VerticalScrollBarVisibility="Auto"
+                     FontFamily="{StaticResource MonoFont}"
+                     FontSize="12" />
+
+            <TextBlock Grid.Row="1"
+                       Text="otpauth://totp/… URIs hier einfügen (eine pro Zeile) oder eine .2fas-Datei wählen."
+                       IsHitTestVisible="False"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       Margin="12,10,12,0"
+                       Visibility="{Binding Text, ElementName=UriBox, Converter={StaticResource InverseStringToVis}}" />
+
+            <TextBlock x:Name="StatusText"
+                       Grid.Row="2"
+                       Style="{StaticResource MutedText}"
+                       Margin="0,10,0,8"
+                       Text="Noch keine Vorschau." />
+
+            <ListBox x:Name="PreviewList"
+                     Grid.Row="3"
+                     Style="{StaticResource AccountListBox}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource FluentCard}" Padding="12">
+                            <DockPanel>
+                                <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                          Style="{StaticResource FluentCheckBox}"
+                                          VerticalAlignment="Top"
+                                          Margin="0,0,10,0" />
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding Issuer}" Style="{StaticResource MutedText}" />
+                                    <TextBox Text="{Binding WindowTitleMatch, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource FluentTextBox}"
+                                             Margin="0,8,0,0"
+                                             ToolTip="Fenstertitel-Match" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <StackPanel Grid.Row="4" Margin="0,10,0,0">
+                <TextBlock Text="Passwort für verschlüsselte 2FAS-Backups (optional)"
+                           Style="{StaticResource FieldLabel}" />
+                <PasswordBox x:Name="BackupPasswordBox" Style="{StaticResource FluentPasswordBox}" />
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</Window>

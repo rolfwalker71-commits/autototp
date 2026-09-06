@@ -1,0 +1,76 @@
+<Window x:Class="Autototp.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Einstellungen"
+        Width="460"
+        Height="520"
+        MinWidth="420"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False">
+    <DockPanel Margin="20">
+        <TextBlock DockPanel.Dock="Top"
+                   Text="Einstellungen"
+                   Style="{StaticResource SectionTitle}"
+                   Margin="0,0,0,16" />
+
+        <Button DockPanel.Dock="Bottom"
+                Content="Schließen"
+                Style="{StaticResource PrimaryButton}"
+                HorizontalAlignment="Right"
+                IsDefault="True"
+                IsCancel="True"
+                Click="OnClose" />
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <Border Style="{StaticResource FluentCard}">
+                    <StackPanel>
+                        <TextBlock Text="Start &amp; Hotkey" FontWeight="SemiBold" Margin="0,0,0,10" />
+                        <CheckBox x:Name="AutostartBox"
+                                  Content="Autostart mit Windows"
+                                  Style="{StaticResource FluentCheckBox}"
+                                  Click="OnAutostartChanged" />
+                        <CheckBox x:Name="SendEnterBox"
+                                  Content="Nach dem Code {ENTER} senden"
+                                  Style="{StaticResource FluentCheckBox}"
+                                  Click="OnSendEnterChanged" />
+                        <TextBlock Text="Globaler Hotkey" Style="{StaticResource FieldLabel}" Margin="0,10,0,6" />
+                        <TextBox x:Name="HotkeyBox" Style="{StaticResource FluentTextBox}" IsReadOnly="True" />
+                        <TextBlock x:Name="HotkeyHint"
+                                   Style="{StaticResource MutedText}"
+                                   Margin="0,8,0,0"
+                                   Text="Standard: Ctrl + Alt + T. Der Hotkey gilt systemweit, auch wenn Autototp im Tray liegt." />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource FluentCard}">
+                    <StackPanel>
+                        <TextBlock Text="Sicherheit" FontWeight="SemiBold" Margin="0,0,0,10" />
+                        <TextBlock Style="{StaticResource MutedText}"
+                                   Text="Secrets werden mit Windows DPAPI für das aktuelle Benutzerkonto verschlüsselt (ProtectedData, CurrentUser)." />
+                        <CheckBox Content="Optionales Master-Passwort (vorbereitet, noch nicht aktiv)"
+                                  Style="{StaticResource FluentCheckBox}"
+                                  IsEnabled="False"
+                                  Margin="0,10,0,0" />
+                        <TextBlock Style="{StaticResource MutedText}"
+                                   Margin="0,4,0,0"
+                                   Text="Das Datenmodell speichert bereits KDF, Salt und Verifier. Standard bleibt die transparente Windows-Benutzerverschlüsselung." />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource FluentCard}">
+                    <StackPanel>
+                        <TextBlock Text="Datenordner" FontWeight="SemiBold" Margin="0,0,0,10" />
+                        <TextBox x:Name="DataPathBox" Style="{StaticResource FluentTextBox}" IsReadOnly="True" TextWrapping="Wrap" />
+                        <Button Content="Ordner öffnen"
+                                Style="{StaticResource FluentButton}"
+                                HorizontalAlignment="Left"
+                                Margin="0,10,0,0"
+                                Click="OnOpenFolder" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

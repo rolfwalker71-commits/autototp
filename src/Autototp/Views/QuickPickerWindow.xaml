@@ -1,0 +1,50 @@
+<Window x:Class="Autototp.Views.QuickPickerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Account wählen"
+        Width="340"
+        Height="380"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        Background="{DynamicResource AppBackgroundBrush}">
+    <Border BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            Background="{DynamicResource CardBackgroundBrush}">
+        <DockPanel Margin="12">
+            <TextBlock DockPanel.Dock="Top"
+                       Text="Account für Auto-Fill"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,8" />
+            <TextBox x:Name="FilterBox"
+                     DockPanel.Dock="Top"
+                     Style="{StaticResource FluentTextBox}"
+                     Margin="0,0,0,8"
+                     TextChanged="OnFilterChanged" />
+            <TextBlock DockPanel.Dock="Bottom"
+                       Text="Enter = einfügen   Esc = schließen"
+                       Style="{StaticResource MutedText}"
+                       Margin="0,8,0,0" />
+            <ListBox x:Name="AccountList"
+                     Style="{StaticResource AccountListBox}"
+                     MouseDoubleClick="OnAccountActivate"
+                     KeyDown="OnListKeyDown">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource FluentCard}" Padding="10" Margin="0,0,0,6">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding Subtitle}" Style="{StaticResource MutedText}" />
+                                <TextBlock Text="{Binding FormattedCode}"
+                                           Style="{StaticResource CodeText}"
+                                           FontSize="18"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DockPanel>
+    </Border>
+</Window>
