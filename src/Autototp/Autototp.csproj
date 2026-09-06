@@ -16,9 +16,11 @@
     <Version>1.0.0</Version>
     <NeutralLanguage>de</NeutralLanguage>
     <SatelliteResourceLanguages>en;de</SatelliteResourceLanguages>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="System.IO" />
     <Using Remove="System.Windows.Forms" />
     <Using Remove="System.Drawing" />
   </ItemGroup>
