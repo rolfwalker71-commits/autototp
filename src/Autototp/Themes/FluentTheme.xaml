@@ -209,7 +209,7 @@
     </Style>
 
     <Style x:Key="AccountNameText" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="21" />
+        <Setter Property="FontSize" Value="19" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
@@ -237,8 +237,8 @@
 
     <Style x:Key="CodeText" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
-        <Setter Property="FontSize" Value="17" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="ExtraBold" />
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Style.Triggers>
             <DataTrigger Binding="{Binding IsExpiringSoon}" Value="True">
