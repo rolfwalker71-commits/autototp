@@ -1,23 +1,29 @@
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Autototp.Models;
 using Autototp.Services;
 using Autototp.ViewModels;
+using Microsoft.Win32;
 
 namespace Autototp.Views;
 
 public partial class AddAccountWindow : Window
 {
     private readonly AccountItemViewModel? _existing;
+    private readonly LogoService _logos;
     private readonly DispatcherTimer _previewTimer;
+    private string? _pendingLogoPath;
+    private bool _clearLogo;
 
     public TotpAccount? ResultAccount { get; private set; }
     public string? ResultSecret { get; private set; }
 
-    public AddAccountWindow(AccountItemViewModel? existing = null)
+    public AddAccountWindow(AccountItemViewModel? existing, LogoService logos)
     {
         InitializeComponent();
         _existing = existing;
+        _logos = logos;
         _previewTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
         _previewTimer.Tick += (_, _) => UpdatePreview();
         _previewTimer.Start();
@@ -34,8 +40,14 @@ public partial class AddAccountWindow : Window
                 SecretBox.Password = existing.PlaintextSecret;
                 SecretPlainBox.Text = existing.PlaintextSecret;
             }
+
+            if (existing.LogoImage is not null)
+            {
+                ShowLogoPreview(existing.LogoImage);
+            }
         }
 
+        UpdateLogoInitial();
         Closed += (_, _) => _previewTimer.Stop();
         SecretBox.PasswordChanged += (_, _) => UpdatePreview();
         SecretPlainBox.TextChanged += (_, _) => UpdatePreview();
@@ -43,6 +55,9 @@ public partial class AddAccountWindow : Window
 
     private string CurrentSecret =>
         ShowSecretBox.IsChecked == true ? SecretPlainBox.Text : SecretBox.Password;
+
+    private void OnNameChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) =>
+        UpdateLogoInitial();
 
     private void OnIssuerLostFocus(object sender, RoutedEventArgs e)
     {
@@ -70,6 +85,38 @@ public partial class AddAccountWindow : Window
         UpdatePreview();
     }
 
+    private void OnChooseLogo(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Logo wählen",
+            Filter = "Bilder (*.png;*.jpg;*.jpeg;*.ico;*.bmp;*.gif)|*.png;*.jpg;*.jpeg;*.ico;*.bmp;*.gif|" +
+                     "PNG (*.png)|*.png|JPEG (*.jpg;*.jpeg)|*.jpg;*.jpeg|Icon (*.ico)|*.ico|Alle Dateien (*.*)|*.*",
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        if (!LogoService.TryCreatePreview(dialog.FileName, out var image, out var error) || image is null)
+        {
+            MessageBox.Show(this, error, "Logo", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        _pendingLogoPath = dialog.FileName;
+        _clearLogo = false;
+        ShowLogoPreview(image);
+    }
+
+    private void OnRemoveLogo(object sender, RoutedEventArgs e)
+    {
+        _pendingLogoPath = null;
+        _clearLogo = true;
+        ClearLogoPreview();
+    }
+
     private void OnSave(object sender, RoutedEventArgs e)
     {
         var name = NameBox.Text.Trim();
@@ -86,18 +133,62 @@ public partial class AddAccountWindow : Window
             return;
         }
 
+        var id = _existing?.Id ?? Guid.NewGuid();
+        string? logoFileName = _existing?.Model.LogoFileName;
+
+        try
+        {
+            if (_clearLogo)
+            {
+                logoFileName = null;
+            }
+            else if (!string.IsNullOrWhiteSpace(_pendingLogoPath))
+            {
+                logoFileName = _logos.SaveFromFile(id, _pendingLogoPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "Logo", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
         ResultAccount = new TotpAccount
         {
-            Id = _existing?.Id ?? Guid.NewGuid(),
+            Id = id,
             Name = name,
             Issuer = IssuerBox.Text.Trim(),
             WindowTitleMatch = MatchBox.Text.Trim(),
             Digits = _existing?.Model.Digits ?? 6,
             Period = _existing?.Model.Period ?? 30,
             Algorithm = _existing?.Model.Algorithm ?? "SHA1",
+            LogoFileName = logoFileName,
         };
         ResultSecret = secret;
         DialogResult = true;
+    }
+
+    private void ShowLogoPreview(ImageSource image)
+    {
+        LogoPreviewBrush.ImageSource = image;
+        LogoImageTile.Visibility = Visibility.Visible;
+        LogoInitialTile.Visibility = Visibility.Collapsed;
+        RemoveLogoButton.IsEnabled = true;
+    }
+
+    private void ClearLogoPreview()
+    {
+        LogoPreviewBrush.ImageSource = null;
+        LogoImageTile.Visibility = Visibility.Collapsed;
+        LogoInitialTile.Visibility = Visibility.Visible;
+        RemoveLogoButton.IsEnabled = false;
+        UpdateLogoInitial();
+    }
+
+    private void UpdateLogoInitial()
+    {
+        var name = NameBox.Text.Trim();
+        LogoInitialText.Text = name.Length == 0 ? "?" : char.ToUpperInvariant(name[0]).ToString();
     }
 
     private void UpdatePreview()

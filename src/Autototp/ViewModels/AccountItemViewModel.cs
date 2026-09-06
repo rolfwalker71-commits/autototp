@@ -1,3 +1,4 @@
+using System.Windows.Media;
 using Autototp.Models;
 using Autototp.Services;
 
@@ -10,12 +11,14 @@ public sealed class AccountItemViewModel : ViewModelBase
     private int _remainingSeconds = 30;
     private double _progress = 1;
     private bool _secretAvailable = true;
+    private ImageSource? _logoImage;
 
-    public AccountItemViewModel(TotpAccount model, string? plaintextSecret)
+    public AccountItemViewModel(TotpAccount model, string? plaintextSecret, ImageSource? logo = null)
     {
         Model = model;
         PlaintextSecret = plaintextSecret;
         _secretAvailable = !string.IsNullOrEmpty(plaintextSecret);
+        _logoImage = logo;
         RefreshCode();
     }
 
@@ -30,6 +33,29 @@ public sealed class AccountItemViewModel : ViewModelBase
     public string Issuer => Model.Issuer;
 
     public string WindowTitleMatch => Model.WindowTitleMatch;
+
+    public ImageSource? LogoImage
+    {
+        get => _logoImage;
+        private set
+        {
+            if (SetProperty(ref _logoImage, value))
+            {
+                OnPropertyChanged(nameof(HasLogo));
+            }
+        }
+    }
+
+    public bool HasLogo => LogoImage is not null;
+
+    public string LogoInitial
+    {
+        get
+        {
+            var name = Name.Trim();
+            return name.Length == 0 ? "?" : char.ToUpperInvariant(name[0]).ToString();
+        }
+    }
 
     public string Subtitle
     {
@@ -80,12 +106,15 @@ public sealed class AccountItemViewModel : ViewModelBase
         private set => SetProperty(ref _secretAvailable, value);
     }
 
+    public void SetLogo(ImageSource? logo) => LogoImage = logo;
+
     public void NotifyLabels()
     {
         OnPropertyChanged(nameof(Name));
         OnPropertyChanged(nameof(Issuer));
         OnPropertyChanged(nameof(WindowTitleMatch));
         OnPropertyChanged(nameof(Subtitle));
+        OnPropertyChanged(nameof(LogoInitial));
     }
 
     public void RefreshCode()

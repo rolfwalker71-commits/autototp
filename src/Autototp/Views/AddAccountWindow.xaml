@@ -2,12 +2,13 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Account"
+        Icon="pack://application:,,,/Assets/app.ico"
         Width="440"
-        Height="520"
+        Height="640"
         MinWidth="400"
-        MinHeight="480"
+        MinHeight="520"
         WindowStartupLocation="CenterOwner"
-        ResizeMode="NoResize"
+        ResizeMode="CanResize"
         ShowInTaskbar="False">
     <DockPanel Margin="20">
         <TextBlock x:Name="TitleText"
@@ -21,38 +22,77 @@
             <Button Content="Speichern" Style="{StaticResource PrimaryButton}" IsDefault="True" Click="OnSave" />
         </StackPanel>
 
-        <StackPanel>
-            <TextBlock Text="Name" Style="{StaticResource FieldLabel}" />
-            <TextBox x:Name="NameBox" Style="{StaticResource FluentTextBox}" Margin="0,0,0,12" />
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="Name" Style="{StaticResource FieldLabel}" />
+                <TextBox x:Name="NameBox" Style="{StaticResource FluentTextBox}" Margin="0,0,0,12" TextChanged="OnNameChanged" />
 
-            <TextBlock Text="Aussteller / Service" Style="{StaticResource FieldLabel}" />
-            <TextBox x:Name="IssuerBox" Style="{StaticResource FluentTextBox}" Margin="0,0,0,12" LostFocus="OnIssuerLostFocus" />
+                <TextBlock Text="Aussteller / Service" Style="{StaticResource FieldLabel}" />
+                <TextBox x:Name="IssuerBox" Style="{StaticResource FluentTextBox}" Margin="0,0,0,12" LostFocus="OnIssuerLostFocus" />
 
-            <TextBlock Text="TOTP-Secret (Base32)" Style="{StaticResource FieldLabel}" />
-            <PasswordBox x:Name="SecretBox" Style="{StaticResource FluentPasswordBox}" Margin="0,0,0,8" />
-            <CheckBox x:Name="ShowSecretBox"
-                      Content="Secret anzeigen"
-                      Style="{StaticResource FluentCheckBox}"
-                      Checked="OnToggleSecret"
-                      Unchecked="OnToggleSecret" />
-            <TextBox x:Name="SecretPlainBox"
-                     Style="{StaticResource FluentTextBox}"
-                     Visibility="Collapsed"
-                     Margin="0,0,0,12" />
+                <TextBlock Text="TOTP-Secret (Base32)" Style="{StaticResource FieldLabel}" />
+                <PasswordBox x:Name="SecretBox" Style="{StaticResource FluentPasswordBox}" Margin="0,0,0,8" />
+                <CheckBox x:Name="ShowSecretBox"
+                          Content="Secret anzeigen"
+                          Style="{StaticResource FluentCheckBox}"
+                          Checked="OnToggleSecret"
+                          Unchecked="OnToggleSecret" />
+                <TextBox x:Name="SecretPlainBox"
+                         Style="{StaticResource FluentTextBox}"
+                         Visibility="Collapsed"
+                         Margin="0,0,0,12" />
 
-            <TextBlock Text="Fenstertitel-Match (z. B. Stooss, Viscosity)" Style="{StaticResource FieldLabel}" />
-            <TextBox x:Name="MatchBox" Style="{StaticResource FluentTextBox}" Margin="0,0,0,8" />
-            <TextBlock Text="Beim Hotkey wird der Titel des aktiven Fensters mit diesem Text verglichen."
-                       Style="{StaticResource MutedText}"
-                       Margin="0,0,0,16" />
+                <TextBlock Text="Fenstertitel-Match (z. B. Stooss, Viscosity)" Style="{StaticResource FieldLabel}" />
+                <TextBox x:Name="MatchBox" Style="{StaticResource FluentTextBox}" Margin="0,0,0,8" />
+                <TextBlock Text="Beim Hotkey wird der Titel des aktiven Fensters mit diesem Text verglichen."
+                           Style="{StaticResource MutedText}"
+                           Margin="0,0,0,16" />
 
-            <Border Style="{StaticResource FluentCard}" Padding="12">
-                <StackPanel>
-                    <TextBlock Text="Live-Vorschau" Style="{StaticResource FieldLabel}" />
-                    <TextBlock x:Name="PreviewCode" Text="--- ---" Style="{StaticResource CodeText}" FontSize="24" />
-                    <TextBlock x:Name="PreviewHint" Style="{StaticResource MutedText}" Text="Secret eingeben, um den aktuellen Code zu sehen." />
-                </StackPanel>
-            </Border>
-        </StackPanel>
+                <TextBlock Text="Logo (optional)" Style="{StaticResource FieldLabel}" />
+                <DockPanel Margin="0,0,0,6" LastChildFill="False">
+                    <Grid Width="48" Height="48" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <Border x:Name="LogoInitialTile"
+                                Style="{StaticResource LogoTile}">
+                            <TextBlock x:Name="LogoInitialText"
+                                       Text="?"
+                                       Foreground="{DynamicResource LogoTileTextBrush}"
+                                       FontWeight="SemiBold"
+                                       FontSize="18"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <Border x:Name="LogoImageTile"
+                                CornerRadius="6"
+                                Visibility="Collapsed">
+                            <Border.Background>
+                                <ImageBrush x:Name="LogoPreviewBrush" Stretch="UniformToFill" />
+                            </Border.Background>
+                        </Border>
+                    </Grid>
+                    <Button Content="Logo wählen…"
+                            Style="{StaticResource FluentButton}"
+                            VerticalAlignment="Center"
+                            Click="OnChooseLogo"
+                            Margin="0,0,8,0" />
+                    <Button x:Name="RemoveLogoButton"
+                            Content="Logo entfernen"
+                            Style="{StaticResource FluentButton}"
+                            VerticalAlignment="Center"
+                            Click="OnRemoveLogo"
+                            IsEnabled="False" />
+                </DockPanel>
+                <TextBlock Text="PNG, JPEG, ICO, BMP oder GIF. Wird als kompaktes PNG im Datenordner gespeichert."
+                           Style="{StaticResource MutedText}"
+                           Margin="0,0,0,16" />
+
+                <Border Style="{StaticResource FluentCard}" Padding="12">
+                    <StackPanel>
+                        <TextBlock Text="Live-Vorschau" Style="{StaticResource FieldLabel}" />
+                        <TextBlock x:Name="PreviewCode" Text="--- ---" Style="{StaticResource CodeText}" FontSize="24" />
+                        <TextBlock x:Name="PreviewHint" Style="{StaticResource MutedText}" Text="Secret eingeben, um den aktuellen Code zu sehen." />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
     </DockPanel>
 </Window>

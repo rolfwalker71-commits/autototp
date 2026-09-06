@@ -14,6 +14,9 @@ public sealed class TotpAccount
     /// <summary>DPAPI-protected Base32 TOTP secret (Base64 payload).</summary>
     public string EncryptedSecret { get; set; } = string.Empty;
 
+    /// <summary>Relative filename under %AppData%\TOTPManager\logos, or an absolute image path.</summary>
+    public string? LogoFileName { get; set; }
+
     public int Digits { get; set; } = 6;
 
     public int Period { get; set; } = 30;

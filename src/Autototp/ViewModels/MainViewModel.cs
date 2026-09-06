@@ -10,6 +10,7 @@ public sealed class MainViewModel : ViewModelBase
 {
     private readonly AccountStore _store;
     private readonly EncryptionService _encryption;
+    private readonly LogoService _logos;
     private string _searchText = string.Empty;
     private AccountItemViewModel? _selectedAccount;
     private StoredData _data;
@@ -18,6 +19,7 @@ public sealed class MainViewModel : ViewModelBase
     {
         _store = store;
         _encryption = encryption;
+        _logos = new LogoService(store.DataDirectory);
         _data = data;
 
         Accounts = [];
@@ -34,6 +36,8 @@ public sealed class MainViewModel : ViewModelBase
     public StoredData Data => _data;
 
     public AppSettings Settings => _data.Settings;
+
+    public LogoService Logos => _logos;
 
     public string SearchText
     {
@@ -62,7 +66,10 @@ public sealed class MainViewModel : ViewModelBase
         foreach (var account in data.Accounts.OrderBy(a => a.Name, StringComparer.CurrentCultureIgnoreCase))
         {
             _encryption.TryUnprotectSecret(account.EncryptedSecret, data.Settings.MasterPassword, out var secret);
-            Accounts.Add(new AccountItemViewModel(account, string.IsNullOrEmpty(secret) ? null : secret));
+            Accounts.Add(new AccountItemViewModel(
+                account,
+                string.IsNullOrEmpty(secret) ? null : secret,
+                _logos.LoadImage(account.LogoFileName)));
         }
 
         FilteredAccounts.Refresh();
@@ -93,7 +100,7 @@ public sealed class MainViewModel : ViewModelBase
                 Algorithm = item.Algorithm,
             };
             _data.Accounts.Add(account);
-            Accounts.Add(new AccountItemViewModel(account, TotpGenerator.NormalizeSecret(item.Secret)));
+            Accounts.Add(new AccountItemViewModel(account, TotpGenerator.NormalizeSecret(item.Secret), null));
         }
 
         Persist();
@@ -107,10 +114,21 @@ public sealed class MainViewModel : ViewModelBase
         if (existing is null)
         {
             _data.Accounts.Add(model);
-            Accounts.Add(new AccountItemViewModel(model, TotpGenerator.NormalizeSecret(plaintextSecret)));
+            Accounts.Add(new AccountItemViewModel(
+                model,
+                TotpGenerator.NormalizeSecret(plaintextSecret),
+                _logos.LoadImage(model.LogoFileName)));
         }
         else
         {
+            var oldLogoPath = _logos.ResolvePath(existing.LogoFileName);
+            var newLogoPath = _logos.ResolvePath(model.LogoFileName);
+            if (oldLogoPath is not null
+                && !string.Equals(oldLogoPath, newLogoPath, StringComparison.OrdinalIgnoreCase))
+            {
+                _logos.Delete(existing.LogoFileName);
+            }
+
             existing.Name = model.Name;
             existing.Issuer = model.Issuer;
             existing.WindowTitleMatch = model.WindowTitleMatch;
@@ -118,11 +136,13 @@ public sealed class MainViewModel : ViewModelBase
             existing.Digits = model.Digits;
             existing.Period = model.Period;
             existing.Algorithm = model.Algorithm;
+            existing.LogoFileName = model.LogoFileName;
 
             var vm = Accounts.FirstOrDefault(a => a.Id == model.Id);
             if (vm is not null)
             {
                 vm.PlaintextSecret = TotpGenerator.NormalizeSecret(plaintextSecret);
+                vm.SetLogo(_logos.LoadImage(existing.LogoFileName));
                 vm.NotifyLabels();
                 vm.RefreshCode();
             }
@@ -133,6 +153,7 @@ public sealed class MainViewModel : ViewModelBase
 
     public void RemoveAccount(AccountItemViewModel item)
     {
+        _logos.Delete(item.Model.LogoFileName);
         _data.Accounts.RemoveAll(a => a.Id == item.Id);
         Accounts.Remove(item);
         if (SelectedAccount == item)

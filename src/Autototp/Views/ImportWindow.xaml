@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Import"
+        Icon="pack://application:,,,/Assets/app.ico"
         Width="560"
         Height="640"
         MinWidth="500"
@@ -9,10 +10,12 @@
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False">
     <DockPanel Margin="20">
-        <TextBlock DockPanel.Dock="Top"
-                   Text="Accounts importieren"
-                   Style="{StaticResource SectionTitle}"
-                   Margin="0,0,0,16" />
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+            <TextBlock Text="Accounts importieren" Style="{StaticResource SectionTitle}" />
+            <TextBlock Text="2FAS-Backup oder otpauth:// URIs. Logos kannst du nach dem Import pro Account setzen."
+                       Style="{StaticResource MutedText}"
+                       Margin="0,6,0,0" />
+        </StackPanel>
 
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
             <Button Content="Abbrechen" Style="{StaticResource FluentButton}" IsCancel="True" Margin="0,0,8,0" />

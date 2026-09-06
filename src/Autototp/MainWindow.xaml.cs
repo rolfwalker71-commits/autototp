@@ -114,7 +114,7 @@ public partial class MainWindow : Window
 
     private void EditAccount(AccountItemViewModel? existing)
     {
-        var dialog = new AddAccountWindow(existing) { Owner = this };
+        var dialog = new AddAccountWindow(existing, ViewModel.Logos) { Owner = this };
         if (dialog.ShowDialog() == true && dialog.ResultAccount is { } model && dialog.ResultSecret is { } secret)
         {
             ViewModel.UpsertAccount(model, secret);

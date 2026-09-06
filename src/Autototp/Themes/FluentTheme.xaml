@@ -4,21 +4,28 @@
     <Color x:Key="AccentColor">#005FB8</Color>
     <Color x:Key="AccentDarkColor">#60CDFF</Color>
     <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
-    <SolidColorBrush x:Key="AccentSoftBrush" Color="#1A005FB8" />
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="#E8F3FC" />
+    <SolidColorBrush x:Key="SecondaryBrush" Color="#0B5E6D" />
     <SolidColorBrush x:Key="DangerBrush" Color="#C42B1C" />
 
     <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F3F3F3" />
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="CardHoverBrush" Color="#F3F8FC" />
+    <SolidColorBrush x:Key="SelectedCardBackgroundBrush" Color="#E8F3FC" />
+    <SolidColorBrush x:Key="SelectedCardBorderBrush" Color="#005FB8" />
     <SolidColorBrush x:Key="ChromeBrush" Color="#E8E8E8" />
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1A1A1A" />
     <SolidColorBrush x:Key="TextSecondaryBrush" Color="#5D5D5D" />
     <SolidColorBrush x:Key="BorderBrush" Color="#E0E0E0" />
     <SolidColorBrush x:Key="InputBackgroundBrush" Color="#FFFFFF" />
-    <SolidColorBrush x:Key="ProgressTrackBrush" Color="#E6E6E6" />
+    <SolidColorBrush x:Key="ProgressTrackBrush" Color="#D0E3F2" />
     <SolidColorBrush x:Key="ButtonFillBrush" Color="#FFFFFF" />
     <SolidColorBrush x:Key="ButtonHoverBrush" Color="#F5F5F5" />
     <SolidColorBrush x:Key="PrimaryButtonFillBrush" Color="#005FB8" />
+    <SolidColorBrush x:Key="PrimaryButtonHoverBrush" Color="#004C94" />
     <SolidColorBrush x:Key="PrimaryButtonTextBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="LogoTileBrush" Color="#005FB8" />
+    <SolidColorBrush x:Key="LogoTileTextBrush" Color="#FFFFFF" />
     <SolidColorBrush x:Key="CodeBrush" Color="#0F3D6E" />
 
     <FontFamily x:Key="UiFont">Segoe UI Variable, Segoe UI, sans-serif</FontFamily>
@@ -41,6 +48,27 @@
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="16,14" />
         <Setter Property="Margin" Value="0,0,0,8" />
+    </Style>
+
+    <Style x:Key="AccountCard" TargetType="Border" BasedOn="{StaticResource FluentCard}">
+        <Setter Property="Cursor" Value="Hand" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource CardHoverBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            </Trigger>
+            <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                <Setter Property="Background" Value="{DynamicResource SelectedCardBackgroundBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SelectedCardBorderBrush}" />
+                <Setter Property="BorderThickness" Value="3,1,1,1" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="LogoTile" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource LogoTileBrush}" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
     </Style>
 
     <Style x:Key="FluentButton" TargetType="Button">
@@ -81,6 +109,29 @@
         <Setter Property="Background" Value="{DynamicResource PrimaryButtonFillBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryButtonTextBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryButtonFillBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PrimaryButtonHoverBrush}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource PrimaryButtonHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource FluentButton}">
@@ -170,7 +221,7 @@
     </Style>
 
     <Style x:Key="FluentProgress" TargetType="ProgressBar">
-        <Setter Property="Height" Value="4" />
+        <Setter Property="Height" Value="5" />
         <Setter Property="Minimum" Value="0" />
         <Setter Property="Maximum" Value="1" />
         <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
