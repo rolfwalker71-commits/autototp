@@ -5,11 +5,11 @@
         Title="Autototp"
         Icon="pack://application:,,,/Assets/app.ico"
         Height="640"
-        Width="520"
+        Width="440"
         MinHeight="480"
-        MinWidth="420"
+        MinWidth="380"
         WindowStartupLocation="CenterScreen">
-    <DockPanel Margin="20">
+    <DockPanel Margin="16">
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16">
             <Border Style="{StaticResource LogoTile}"
                     Width="32"
@@ -48,19 +48,18 @@
                        Visibility="{Binding SearchText, Converter={StaticResource InverseStringToVis}}" />
         </Grid>
 
-        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,12,0,0">
+        <WrapPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
             <Button Content="Account manuell hinzufügen"
-                    Style="{StaticResource PrimaryButton}"
-                    Click="OnAddAccount"
-                    Margin="0,0,8,0" />
+                    Style="{StaticResource FooterPrimaryButton}"
+                    Click="OnAddAccount" />
             <Button Content="Import"
-                    Style="{StaticResource FluentButton}"
-                    Click="OnImport"
-                    Margin="0,0,8,0" />
+                    Style="{StaticResource FooterButton}"
+                    Click="OnImport" />
             <Button Content="Einstellungen"
-                    Style="{StaticResource FluentButton}"
-                    Click="OnSettings" />
-        </StackPanel>
+                    Style="{StaticResource FooterButton}"
+                    Click="OnSettings"
+                    Margin="0,0,0,4" />
+        </WrapPanel>
 
         <Grid>
             <ListBox ItemsSource="{Binding FilteredAccounts}"
@@ -82,7 +81,6 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -91,17 +89,16 @@
                                 </Grid.ColumnDefinitions>
 
                                 <views:AccountLogoTile Grid.Row="0"
-                                                       Grid.RowSpan="2"
                                                        Width="36"
                                                        Height="36"
                                                        Margin="0,0,12,0"
                                                        VerticalAlignment="Top" />
-                                <TextBlock Grid.Row="0"
-                                           Grid.Column="1"
-                                           Text="{Binding Name}"
-                                           FontWeight="SemiBold"
-                                           FontSize="15"
-                                           TextWrapping="Wrap" />
+                                <StackPanel Grid.Row="0" Grid.Column="1">
+                                    <TextBlock Text="{Binding Name}" Style="{StaticResource AccountNameText}" />
+                                    <TextBlock Text="{Binding Subtitle}"
+                                               Style="{StaticResource MutedText}"
+                                               Margin="0,1,0,0" />
+                                </StackPanel>
                                 <TextBlock Grid.Row="0"
                                            Grid.Column="2"
                                            Text="{Binding FormattedCode}"
@@ -112,17 +109,12 @@
                                            Cursor="Hand"
                                            ToolTip="Klicken zum Kopieren"
                                            MouseLeftButtonUp="OnCodeClick" />
-                                <TextBlock Grid.Row="1"
-                                           Grid.Column="1"
-                                           Grid.ColumnSpan="2"
-                                           Text="{Binding Subtitle}"
-                                           Style="{StaticResource MutedText}"
-                                           Margin="0,4,0,10" />
-                                <ProgressBar Grid.Row="2"
+                                <ProgressBar Grid.Row="1"
                                              Grid.ColumnSpan="3"
                                              Style="{StaticResource FluentProgress}"
-                                             Value="{Binding Progress, Mode=OneWay}" />
-                                <TextBlock Grid.Row="3"
+                                             Value="{Binding Progress, Mode=OneWay}"
+                                             Margin="0,8,0,0" />
+                                <TextBlock Grid.Row="2"
                                            Grid.ColumnSpan="3"
                                            Text="{Binding RemainingSeconds, StringFormat={}{0}s}"
                                            Style="{StaticResource MutedText}"

@@ -44,7 +44,7 @@
 
                 <TextBlock Text="Fenstertitel-Match (z. B. Stooss, Viscosity)" Style="{StaticResource FieldLabel}" />
                 <TextBox x:Name="MatchBox" Style="{StaticResource FluentTextBox}" Margin="0,0,0,8" />
-                <TextBlock Text="Beim Hotkey wird der Titel des aktiven Fensters mit diesem Text verglichen."
+                <TextBlock Text="Beim Hotkey wird der Fenstertitel mit diesem Text verglichen (Groß/Klein, Satzzeichen und Leerzeichen egal). Name und Aussteller gelten als Fallback."
                            Style="{StaticResource MutedText}"
                            Margin="0,0,0,16" />
 

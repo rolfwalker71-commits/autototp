@@ -35,6 +35,12 @@ public partial class MainWindow : Window
 
     public MainViewModel ViewModel { get; }
 
+    public void FocusSearch()
+    {
+        SearchBox.Focus();
+        Keyboard.Focus(SearchBox);
+    }
+
     private void OnAddAccount(object sender, RoutedEventArgs e) => EditAccount(null);
 
     private void OnImport(object sender, RoutedEventArgs e)

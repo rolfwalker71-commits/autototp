@@ -1,11 +1,15 @@
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows;
+using System.Windows.Interop;
 
 namespace Autototp.Services;
 
 public static class NativeWindowService
 {
     private const int MaxTitleLength = 1024;
+    private const int SwRestore = 9;
+    private const uint AsfwAny = 0xFFFFFFFF;
 
     [StructLayout(LayoutKind.Sequential)]
     public struct Point
@@ -22,6 +26,24 @@ public static class NativeWindowService
 
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(nint hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool AllowSetForegroundWindow(uint dwProcessId);
+
+    [DllImport("user32.dll")]
+    private static extern bool BringWindowToTop(nint hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(nint hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(nint hWnd, out uint processId);
+
+    [DllImport("user32.dll")]
+    private static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
+
+    [DllImport("kernel32.dll")]
+    private static extern uint GetCurrentThreadId();
 
     [DllImport("user32.dll")]
     private static extern bool GetCursorPos(out Point lpPoint);
@@ -55,7 +77,89 @@ public static class NativeWindowService
 
     public static string ForegroundWindowTitle => GetWindowTitle(ForegroundWindow);
 
-    public static bool TryActivate(nint hwnd) => hwnd != nint.Zero && SetForegroundWindow(hwnd);
+    public static bool IsOwnedByCurrentProcess(nint hwnd)
+    {
+        if (hwnd == nint.Zero)
+        {
+            return false;
+        }
+
+        _ = GetWindowThreadProcessId(hwnd, out var processId);
+        return processId == (uint)Environment.ProcessId;
+    }
+
+    public static bool TryActivate(nint hwnd) => ForceForeground(hwnd);
+
+    public static bool ForceForeground(nint hwnd)
+    {
+        if (hwnd == nint.Zero)
+        {
+            return false;
+        }
+
+        AllowSetForegroundWindow(AsfwAny);
+
+        var foreground = GetForegroundWindow();
+        var currentThread = GetCurrentThreadId();
+        var foregroundThread = foreground == nint.Zero ? 0 : GetWindowThreadProcessId(foreground, out _);
+        var targetThread = GetWindowThreadProcessId(hwnd, out _);
+
+        var attachedForeground = false;
+        var attachedTarget = false;
+        try
+        {
+            if (foregroundThread != 0 && foregroundThread != currentThread)
+            {
+                attachedForeground = AttachThreadInput(currentThread, foregroundThread, true);
+            }
+
+            if (targetThread != 0 && targetThread != currentThread && targetThread != foregroundThread)
+            {
+                attachedTarget = AttachThreadInput(currentThread, targetThread, true);
+            }
+
+            ShowWindow(hwnd, SwRestore);
+            BringWindowToTop(hwnd);
+            SetForegroundWindow(hwnd);
+        }
+        finally
+        {
+            if (attachedTarget)
+            {
+                AttachThreadInput(currentThread, targetThread, false);
+            }
+
+            if (attachedForeground)
+            {
+                AttachThreadInput(currentThread, foregroundThread, false);
+            }
+        }
+
+        return GetForegroundWindow() == hwnd;
+    }
+
+    /// <summary>
+    /// Brings a WPF window to the foreground even when another app currently owns focus
+    /// (needed after a global hotkey such as Ctrl+Alt+T).
+    /// </summary>
+    public static void StealFocus(Window window, bool keepTopmost)
+    {
+        if (window.WindowState == WindowState.Minimized)
+        {
+            window.WindowState = WindowState.Normal;
+        }
+
+        window.Topmost = true;
+        var hwnd = new WindowInteropHelper(window).EnsureHandle();
+        ForceForeground(hwnd);
+        window.Activate();
+        window.Focus();
+
+        if (!keepTopmost)
+        {
+            window.Topmost = false;
+        }
+    }
 
     public static Point CursorPosition
     {

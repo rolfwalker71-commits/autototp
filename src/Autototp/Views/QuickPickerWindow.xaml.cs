@@ -23,6 +23,7 @@ public partial class QuickPickerWindow : Window
             AccountList.SelectedIndex = 0;
         }
 
+        SourceInitialized += (_, _) => NativeWindowService.StealFocus(this, keepTopmost: true);
         Loaded += OnLoaded;
         PreviewKeyDown += OnPreviewKey;
     }
@@ -36,7 +37,9 @@ public partial class QuickPickerWindow : Window
         var top = cursor.Y / dpi.DpiScaleY;
         Left = Math.Clamp(left, work.Left, Math.Max(work.Left, work.Right - ActualWidth));
         Top = Math.Clamp(top, work.Top, Math.Max(work.Top, work.Bottom - ActualHeight));
+        NativeWindowService.StealFocus(this, keepTopmost: true);
         FilterBox.Focus();
+        Keyboard.Focus(FilterBox);
     }
 
     private void OnFilterChanged(object sender, TextChangedEventArgs e)

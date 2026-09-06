@@ -8,7 +8,10 @@ public sealed class TotpAccount
 
     public string Issuer { get; set; } = string.Empty;
 
-    /// <summary>Case-insensitive substring matched against the foreground window title.</summary>
+    /// <summary>
+    /// Preferred match against the foreground window title (case-insensitive contains;
+    /// punctuation and extra spaces are ignored). Name and Issuer are fallbacks.
+    /// </summary>
     public string WindowTitleMatch { get; set; } = string.Empty;
 
     /// <summary>DPAPI-protected Base32 TOTP secret (Base64 payload).</summary>

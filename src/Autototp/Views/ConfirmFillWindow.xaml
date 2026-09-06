@@ -1,0 +1,97 @@
+<Window x:Class="Autototp.Views.ConfirmFillWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:Autototp.Views"
+        Title="Code einfügen?"
+        Icon="pack://application:,,,/Assets/app.ico"
+        Width="380"
+        SizeToContent="Height"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        ShowActivated="True"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource AppBackgroundBrush}">
+    <Border BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            Background="{DynamicResource CardBackgroundBrush}">
+        <DockPanel Margin="16">
+            <TextBlock DockPanel.Dock="Top"
+                       Text="Code einfügen?"
+                       Style="{StaticResource SectionTitle}"
+                       FontSize="18"
+                       Margin="0,0,0,12" />
+
+            <TextBlock x:Name="ForegroundHint"
+                       DockPanel.Dock="Top"
+                       Style="{StaticResource MutedText}"
+                       Margin="0,0,0,12" />
+
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                <Button Content="Abbrechen"
+                        Style="{StaticResource FluentButton}"
+                        IsCancel="True"
+                        Click="OnCancel"
+                        Margin="0,0,8,0" />
+                <Button x:Name="ConfirmButton"
+                        Style="{StaticResource PrimaryButton}"
+                        IsDefault="True"
+                        Click="OnConfirm" />
+            </StackPanel>
+
+            <TextBlock DockPanel.Dock="Bottom"
+                       Text="Enter = einfügen   Esc = abbrechen"
+                       Style="{StaticResource MutedText}"
+                       Margin="0,8,0,0" />
+
+            <Border Style="{StaticResource FluentCard}" Padding="14,12" Margin="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <views:AccountLogoTile Grid.Row="0"
+                                           Width="40"
+                                           Height="40"
+                                           Margin="0,0,12,0"
+                                           VerticalAlignment="Top" />
+                    <StackPanel Grid.Row="0" Grid.Column="1">
+                        <TextBlock Text="{Binding Name}" Style="{StaticResource AccountNameText}" />
+                        <TextBlock x:Name="IssuerText"
+                                   Style="{StaticResource MutedText}"
+                                   Margin="0,2,0,0" />
+                        <TextBlock x:Name="MatchText"
+                                   Style="{StaticResource MutedText}"
+                                   Margin="0,1,0,0" />
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="1"
+                               Grid.ColumnSpan="2"
+                               Text="{Binding FormattedCode}"
+                               Style="{StaticResource CodeText}"
+                               FontSize="28"
+                               Margin="0,12,0,8" />
+
+                    <ProgressBar Grid.Row="2"
+                                 Grid.ColumnSpan="2"
+                                 Style="{StaticResource FluentProgress}"
+                                 Value="{Binding Progress, Mode=OneWay}" />
+                    <TextBlock Grid.Row="3"
+                               Grid.ColumnSpan="2"
+                               Text="{Binding RemainingSeconds, StringFormat=noch {0}s}"
+                               Style="{StaticResource MutedText}"
+                               Foreground="{DynamicResource SecondaryBrush}"
+                               Margin="0,6,0,0" />
+                </Grid>
+            </Border>
+        </DockPanel>
+    </Border>
+</Window>

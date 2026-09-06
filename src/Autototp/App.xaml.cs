@@ -95,8 +95,8 @@ public partial class App : System.Windows.Application
 
         _mainWindow.Show();
         _mainWindow.WindowState = WindowState.Normal;
-        _mainWindow.Activate();
-        _mainWindow.Focus();
+        NativeWindowService.StealFocus(_mainWindow, keepTopmost: false);
+        _mainWindow.FocusSearch();
     }
 
     public void ExitApplication()
@@ -146,28 +146,60 @@ public partial class App : System.Windows.Application
         }
 
         var hwnd = NativeWindowService.ForegroundWindow;
-        var title = NativeWindowService.GetWindowTitle(hwnd);
+        var title = NativeWindowService.IsOwnedByCurrentProcess(hwnd)
+            ? string.Empty
+            : NativeWindowService.GetWindowTitle(hwnd);
         var matches = _autoFill.FindMatches(_viewModel.Data.Accounts, title, _viewModel.Settings.MasterPassword);
+        var sendEnter = _viewModel.Settings.SendEnterAfterCode;
 
         if (matches.Count == 1)
         {
-            _autoFill.TypeCode(matches[0].Secret, matches[0].Account, _viewModel.Settings.SendEnterAfterCode);
+            var match = matches[0];
+            var account = _viewModel.Accounts.FirstOrDefault(a => a.Id == match.Account.Id);
+            if (account is null)
+            {
+                ShowMainWindow();
+                return;
+            }
+
+            var confirm = new ConfirmFillWindow(account, match, title, sendEnter);
+            if (confirm.ShowDialog() == true && account.PlaintextSecret is not null)
+            {
+                _autoFill.TypeCode(match.Secret, match.Account, sendEnter, hwnd);
+            }
+            else
+            {
+                NativeWindowService.ForceForeground(hwnd);
+            }
+
             return;
         }
 
-        var candidates = matches.Count > 1
-            ? _viewModel.Accounts.Where(a => matches.Any(m => m.Account.Id == a.Id)).ToList()
-            : _viewModel.Accounts.ToList();
-
-        var picker = new QuickPickerWindow(candidates);
-        if (picker.ShowDialog() == true && picker.SelectedAccount is { } selected && selected.PlaintextSecret is not null)
+        if (matches.Count > 1)
         {
-            _autoFill.TypeCode(
-                selected.PlaintextSecret,
-                selected.Model,
-                _viewModel.Settings.SendEnterAfterCode,
-                hwnd);
+            var candidates = _viewModel.Accounts
+                .Where(a => matches.Any(m => m.Account.Id == a.Id))
+                .ToList();
+            if (candidates.Count == 0)
+            {
+                ShowMainWindow();
+                return;
+            }
+
+            var picker = new QuickPickerWindow(candidates);
+            if (picker.ShowDialog() == true && picker.SelectedAccount is { } selected && selected.PlaintextSecret is not null)
+            {
+                _autoFill.TypeCode(selected.PlaintextSecret, selected.Model, sendEnter, hwnd);
+            }
+            else
+            {
+                NativeWindowService.ForceForeground(hwnd);
+            }
+
+            return;
         }
+
+        ShowMainWindow();
     }
 
     private TaskbarIcon CreateTrayIcon()
