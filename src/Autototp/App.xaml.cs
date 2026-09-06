@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using Autototp.Models;
 using Autototp.Services;
@@ -7,7 +8,7 @@ using Hardcodet.Wpf.TaskbarNotification;
 
 namespace Autototp;
 
-public partial class App : Application
+public partial class App : System.Windows.Application
 {
     private readonly AccountStore _store = new();
     private readonly EncryptionService _encryption = new();

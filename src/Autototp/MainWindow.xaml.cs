@@ -44,7 +44,7 @@ public partial class MainWindow : Window
         dialog.ShowDialog();
     }
 
-    private void OnAccountDoubleClick(object sender, MouseButtonEventArgs e)
+    private void OnAccountDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (ViewModel.SelectedAccount is { } account)
         {

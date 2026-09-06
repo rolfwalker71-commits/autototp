@@ -13,7 +13,7 @@ public partial class SettingsWindow : Window
     {
         InitializeComponent();
         _viewModel = viewModel;
-        _app = (App)Application.Current;
+        _app = (App)System.Windows.Application.Current;
 
         AutostartBox.IsChecked = _app.Autostart.IsEnabled();
         SendEnterBox.IsChecked = _viewModel.Settings.SendEnterAfterCode;

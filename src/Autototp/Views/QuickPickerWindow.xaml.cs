@@ -50,9 +50,9 @@ public partial class QuickPickerWindow : Window
         }
     }
 
-    private void OnAccountActivate(object sender, MouseButtonEventArgs e) => AcceptSelection();
+    private void OnAccountActivate(object sender, System.Windows.Input.MouseButtonEventArgs e) => AcceptSelection();
 
-    private void OnListKeyDown(object sender, KeyEventArgs e)
+    private void OnListKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (e.Key == Key.Enter)
         {
@@ -61,7 +61,7 @@ public partial class QuickPickerWindow : Window
         }
     }
 
-    private void OnPreviewKey(object sender, KeyEventArgs e)
+    private void OnPreviewKey(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (e.Key == Key.Escape)
         {
