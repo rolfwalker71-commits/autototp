@@ -224,9 +224,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
 
     private func setUpStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        let image = NSImage(systemSymbolName: "lock.shield", accessibilityDescription: "Autototp")
-        image?.isTemplate = true
-        statusItem.button?.image = image
+        statusItem.button?.image = StatusIcon.make()
         statusItem.button?.toolTip = "Autototp"
         let menu = NSMenu()
         menu.delegate = self
@@ -430,5 +428,47 @@ final class FloatingPanel: NSPanel {
             y: visible.maxY - visible.height * 0.28 - size.height / 2
         )
         setFrameOrigin(origin)
+    }
+}
+
+// MARK: - Menu bar icon
+
+/// Template version of the app icon: a solid keycap with the countdown ring and keyhole cut out.
+/// Drawn as vectors so it stays crisp at any scale and follows the menu bar's light/dark tint.
+enum StatusIcon {
+    static func make(size: CGFloat = 18) -> NSImage {
+        let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { rect in
+            let s = rect.width / 18
+            NSColor.black.setFill()
+            NSBezierPath(roundedRect: NSRect(x: 0.75 * s, y: 0.75 * s, width: 16.5 * s, height: 16.5 * s),
+                         xRadius: 4.3 * s, yRadius: 4.3 * s).fill()
+
+            guard let context = NSGraphicsContext.current else { return true }
+            context.compositingOperation = .destinationOut
+            NSColor.black.setStroke()
+            NSColor.black.setFill()
+
+            // Three-quarter countdown ring, starting at 12 o'clock.
+            let center = NSPoint(x: 9 * s, y: 9 * s)
+            let ring = NSBezierPath()
+            ring.appendArc(withCenter: center, radius: 5.1 * s, startAngle: 90, endAngle: 180, clockwise: true)
+            ring.lineWidth = 1.9 * s
+            ring.lineCapStyle = .round
+            ring.stroke()
+
+            // Keyhole.
+            NSBezierPath(ovalIn: NSRect(x: 7.3 * s, y: 8.6 * s, width: 3.4 * s, height: 3.4 * s)).fill()
+            let stem = NSBezierPath()
+            stem.move(to: NSPoint(x: 8.15 * s, y: 9.2 * s))
+            stem.line(to: NSPoint(x: 9.85 * s, y: 9.2 * s))
+            stem.line(to: NSPoint(x: 10.45 * s, y: 5.9 * s))
+            stem.line(to: NSPoint(x: 7.55 * s, y: 5.9 * s))
+            stem.close()
+            stem.fill()
+            return true
+        }
+        image.isTemplate = true
+        image.accessibilityDescription = "Autototp"
+        return image
     }
 }

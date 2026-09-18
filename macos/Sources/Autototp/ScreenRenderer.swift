@@ -67,6 +67,8 @@ final class ScreenRenderer: NSObject, NSApplicationDelegate {
             )
         }
 
+        writeStatusIconPreview()
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             for (window, name) in self.pending {
                 self.capture(window, name: name)
@@ -134,6 +136,43 @@ final class ScreenRenderer: NSObject, NSApplicationDelegate {
         if let png = rep.representation(using: .png, properties: [:]) {
             try? png.write(to: outputDirectory.appendingPathComponent("\(name).png"))
         }
+    }
+
+    /// Menu bar strip with the template icon next to system-like glyphs, light and dark, at 4x.
+    private func writeStatusIconPreview() {
+        let scale: CGFloat = 4
+        let strip = NSSize(width: 150, height: 24)
+        guard let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil, pixelsWide: Int(strip.width * scale), pixelsHigh: Int(strip.height * 2 * scale),
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+        ) else { return }
+        rep.size = NSSize(width: strip.width, height: strip.height * 2)
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        let icon = StatusIcon.make()
+        let neighbours = ["wifi", "battery.75percent", "magnifyingglass"].compactMap {
+            NSImage(systemSymbolName: $0, accessibilityDescription: nil)?
+                .withSymbolConfiguration(.init(pointSize: 14, weight: .regular))
+        }
+        for (row, (background, tint)) in [(NSColor(white: 0.93, alpha: 1), NSColor.black), (NSColor(white: 0.16, alpha: 1), NSColor.white)].enumerated() {
+            let y = CGFloat(1 - row) * strip.height
+            background.setFill()
+            NSRect(x: 0, y: y, width: strip.width, height: strip.height).fill()
+            var x: CGFloat = 12
+            for glyph in [icon] + neighbours {
+                let tinted = NSImage(size: glyph.size, flipped: false) { rect in
+                    glyph.draw(in: rect)
+                    tint.set()
+                    rect.fill(using: .sourceAtop)
+                    return true
+                }
+                tinted.draw(in: NSRect(x: x, y: y + (strip.height - glyph.size.height) / 2, width: glyph.size.width, height: glyph.size.height))
+                x += glyph.size.width + 16
+            }
+        }
+        NSGraphicsContext.restoreGraphicsState()
+        try? rep.representation(using: .png, properties: [:])?.write(to: outputDirectory.appendingPathComponent("7-menueleiste.png"))
     }
 
     // MARK: Sample data
