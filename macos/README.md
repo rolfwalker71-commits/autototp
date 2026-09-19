@@ -18,7 +18,7 @@ scripts/build-app.sh --install   # zusätzlich nach /Applications kopieren
 scripts/test.sh                  # Kern-Tests (TOTP RFC 6238, Matching, Import, Speicher)
 ```
 
-Die Skripte rufen `swiftc` direkt auf. Das macOS-27-SDK braucht für SwiftUI ein Makro-Plugin, das nur mit Xcode kommt; ohne Xcode nimmt `build-app.sh` automatisch das neueste installierte SDK 26 (überschreibbar mit `AUTOTOTP_SDK`). `Package.swift` funktioniert mit Xcode oder mit `SDKROOT=…/MacOSX26.5.sdk swift build`.
+Die Skripte rufen `swiftc` direkt auf, Xcode ist optional. Das macOS-27-SDK braucht für SwiftUI ein Makro-Plugin, das nur mit Xcode kommt; ohne Xcode nimmt `build-app.sh` automatisch das neueste installierte SDK 26 (überschreibbar mit `AUTOTOTP_SDK`). `Package.swift` funktioniert mit Xcode oder mit `SDKROOT=…/MacOSX26.5.sdk swift build`.
 
 Das App-Icon ist `Resources/AppIcon.svg`; das Build-Skript rendert es mit Quick Look in alle Grössen.
 
@@ -30,13 +30,9 @@ build/Autototp.app/Contents/MacOS/Autototp --render-screens /tmp/autototp-screen
 
 ## Berechtigungen
 
-Für ⌃⌥T braucht die App **Bedienungshilfen** (Systemeinstellungen → Datenschutz & Sicherheit). Damit liest sie den Titel des aktiven Fensters und tippt den Code ein.
+Für ⌃⌥T muss Autototp unter Systemeinstellungen → Datenschutz & Sicherheit → **Gerätesteuerung und Datenzugriff** eingeschaltet sein (bis macOS 26 hiess die Kategorie **Bedienungshilfen**). Damit liest die App den Titel des aktiven Fensters und tippt den Code ein.
 
-Die Freigabe hängt an der Code-Signatur. Bei ad-hoc-signierten Builds muss sie nach jedem Neubau erneut erteilt werden. Mit einer festen Signatur bleibt sie erhalten:
-
-```bash
-AUTOTOTP_SIGN_IDENTITY="Apple Development: …" scripts/build-app.sh --install
-```
+Die Freigabe hängt an der Code-Signatur. `build-app.sh` signiert automatisch mit dem ersten „Apple Development“-Zertifikat (Xcode → Einstellungen → Accounts), dann bleibt sie über Neubauten erhalten. Ohne Zertifikat wird ad hoc signiert, und die Freigabe muss nach jedem Neubau erneuert werden (alten Eintrag mit „−“ entfernen, neu hinzufügen). Eine andere Identität: `AUTOTOTP_SIGN_IDENTITY="…" scripts/build-app.sh`.
 
 ## Daten und Sicherheit
 

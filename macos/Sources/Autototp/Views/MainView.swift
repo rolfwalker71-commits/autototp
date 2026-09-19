@@ -222,7 +222,7 @@ private struct AccessibilityBanner: View {
                 .foregroundStyle(.orange)
                 .font(.title3)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Bedienungshilfen-Zugriff fehlt")
+                Text("Zugriff auf „\(Permissions.accessibilityPaneName)“ fehlt")
                     .font(.system(size: 12, weight: .semibold))
                 Text("Ohne ihn kann Autototp keine Fenster erkennen und keine Codes eintippen.")
                     .font(.system(size: 11))

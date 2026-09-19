@@ -210,8 +210,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     private func askForAccessibility() {
         NSApp.activate()
         let alert = NSAlert()
-        alert.messageText = "Autototp braucht Zugriff auf die Bedienungshilfen"
-        alert.informativeText = "Nur so kann Autototp das aktive Fenster erkennen und den Code eintippen. Erlaube Autototp unter Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen und drücke \(HotkeyService.displayText) erneut."
+        alert.messageText = "Autototp braucht Zugriff auf „\(Permissions.accessibilityPaneName)“"
+        alert.informativeText = "Nur so kann Autototp das aktive Fenster erkennen und den Code eintippen. Schalte Autototp unter \(Permissions.accessibilityPanePath) ein und drücke \(HotkeyService.displayText) erneut."
         alert.addButton(withTitle: "Systemeinstellungen öffnen")
         alert.addButton(withTitle: "Abbrechen")
         if alert.runModal() == .alertFirstButtonReturn {

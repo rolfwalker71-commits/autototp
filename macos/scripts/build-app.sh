@@ -4,8 +4,8 @@
 #   scripts/build-app.sh             # release build
 #   scripts/build-app.sh --install   # also copies the app to /Applications
 #
-# Signing: set AUTOTOTP_SIGN_IDENTITY to a code-signing identity to keep the Accessibility
-# permission across rebuilds; otherwise the app is signed ad hoc.
+# Signing: uses the first "Apple Development" identity (or AUTOTOTP_SIGN_IDENTITY), so the
+# Accessibility permission survives rebuilds; falls back to ad hoc when none exists.
 set -euo pipefail
 cd "${0:A:h}/.."
 
@@ -14,13 +14,14 @@ obj=build/obj
 arch=$(uname -m)
 target="$arch-apple-macos15.0"
 
-# The macOS 27 SDK needs the SwiftUI macro plugin, which only ships with Xcode.
-# With just the Command Line Tools, fall back to the newest SDK that works without it.
+# The macOS 27 SDK needs the SwiftUI macro plugin. Xcode ships it; the Command Line Tools alone
+# do not, so then fall back to the newest SDK that works without it.
 sdk=${AUTOTOTP_SDK:-$(xcrun --show-sdk-path)}
 toolchain=$(dirname "$(dirname "$(xcrun --find swiftc)")")
-if ! ls "$toolchain"/lib/swift/host/plugins/*SwiftUIMacros* >/dev/null 2>&1; then
-    fallback=$(ls -d "$(dirname "$sdk")"/MacOSX26*.sdk 2>/dev/null | sort -V | tail -1)
-    [[ -n "$fallback" ]] && sdk=$fallback
+plugins=( "$toolchain"/lib/swift/host/plugins/*SwiftUIMacros*(N) "${sdk:h:h}"/usr/lib/swift/host/plugins/*SwiftUIMacros*(N) )
+if [[ -z "${AUTOTOTP_SDK:-}" && ${#plugins} -eq 0 ]]; then
+    fallback=( "${sdk:h}"/MacOSX26*.sdk(N) )
+    (( ${#fallback} )) && sdk=${${(On)fallback}[1]}
 fi
 echo "▸ SDK: ${sdk:t}"
 
@@ -58,7 +59,11 @@ done
 iconutil -c icns "$iconset" -o "$app/Contents/Resources/AppIcon.icns"
 
 echo "▸ Signieren"
-codesign --force --options runtime --sign "${AUTOTOTP_SIGN_IDENTITY:--}" "$app"
+# A stable identity keeps the Accessibility permission across rebuilds; ad hoc changes it every build.
+identity=${AUTOTOTP_SIGN_IDENTITY:-$(security find-identity -v -p codesigning | sed -n 's/.*"\(Apple Development: .*\)"/\1/p' | head -1)}
+identity=${identity:--}
+echo "  Identität: ${identity/#-/ad hoc}"
+codesign --force --options runtime --sign "$identity" "$app"
 
 echo "✔ $app"
 

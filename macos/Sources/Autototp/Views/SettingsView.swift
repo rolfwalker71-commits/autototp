@@ -43,7 +43,7 @@ struct SettingsView: View {
                     get: { model.settings.sendEnterAfterCode },
                     set: { value in model.updateSettings { $0.sendEnterAfterCode = value } }
                 ))
-                LabeledContent("Bedienungshilfen") {
+                LabeledContent(Permissions.accessibilityPaneName) {
                     if model.accessibilityTrusted {
                         Label("Erlaubt", systemImage: "checkmark.circle.fill")
                             .foregroundStyle(.green)
@@ -57,7 +57,7 @@ struct SettingsView: View {
             } header: {
                 Text("Auto-Fill")
             } footer: {
-                Text("\(HotkeyService.displayText) sucht den Account zum aktiven Fenster und tippt den Code ein. Dafür braucht Autototp Zugriff unter Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen.")
+                Text("\(HotkeyService.displayText) sucht den Account zum aktiven Fenster und tippt den Code ein. Dafür muss Autototp unter \(Permissions.accessibilityPanePath) eingeschaltet sein.")
             }
 
             Section("Sicherheit") {

@@ -164,9 +164,28 @@ enum Permissions {
         _ = AXIsProcessTrustedWithOptions(options)
     }
 
+    /// Name of the privacy category in System Settings. macOS 27 renamed "Bedienungshilfen"
+    /// (the TCC Accessibility list) to "Gerätesteuerung und Datenzugriff".
+    static var accessibilityPaneName: String {
+        ProcessInfo.processInfo.isOperatingSystemAtLeast(OperatingSystemVersion(majorVersion: 27, minorVersion: 0, patchVersion: 0))
+            ? "Gerätesteuerung und Datenzugriff"
+            : "Bedienungshilfen"
+    }
+
+    /// "Systemeinstellungen → Datenschutz & Sicherheit → …"
+    static var accessibilityPanePath: String {
+        "Systemeinstellungen → Datenschutz & Sicherheit → \(accessibilityPaneName)"
+    }
+
     static func openAccessibilitySettings() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-            NSWorkspace.shared.open(url)
+        let candidates = [
+            "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_Accessibility",
+            "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+        ]
+        for candidate in candidates {
+            if let url = URL(string: candidate), NSWorkspace.shared.open(url) {
+                return
+            }
         }
     }
 }
