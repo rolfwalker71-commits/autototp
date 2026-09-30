@@ -45,6 +45,7 @@ swiftc -O -swift-version 5 -target "$target" -sdk "$sdk" \
 
 echo "▸ Bundle zusammenstellen"
 cp Resources/Info.plist "$app/Contents/Info.plist"
+cp -R Resources/Fonts "$app/Contents/Resources/Fonts"   # Dosis, via ATSApplicationFontsPath
 
 iconset="$obj/AppIcon.iconset"
 mkdir -p "$iconset"

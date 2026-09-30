@@ -54,6 +54,10 @@ run("Import otpauth lines", imports.parsesOtpAuthLines)
 run("Import plain 2FAS", imports.parsesPlain2Fas)
 run("Import encrypted 2FAS", imports.decryptsEncrypted2Fas)
 
+let exports = ExportTests()
+run("Export/Import round trip", exports.roundTripsThroughOtpauth)
+run("Export omits defaults", exports.keepsDefaultsShort)
+
 let storage = StorageTests()
 run("SecretBox round trip", storage.secretBoxRoundTrip)
 run("Store reads sparse JSON", storage.readsWindowsStyleJSONWithMissingFields)

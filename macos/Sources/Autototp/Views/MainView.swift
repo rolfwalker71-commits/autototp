@@ -50,9 +50,9 @@ struct MainView: View {
                 accountList
             }
 
-            Divider()
             footer
         }
+        .background(BackgroundWash())
         .frame(minWidth: 440, idealWidth: 480, minHeight: 360, idealHeight: 560)
         .navigationTitle("Autototp")
         .searchable(text: $search, placement: .toolbar, prompt: "Name, Aussteller oder Match")
@@ -108,9 +108,13 @@ struct MainView: View {
                         copy(item)
                     }
                     .tag(item.id)
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 3, leading: 10, bottom: 3, trailing: 10))
                 }
             }
-            .listStyle(.inset(alternatesRowBackgrounds: false))
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
             .contextMenu(forSelectionType: UUID.self) { ids in
                 if let id = ids.first, let item = model.item(id) {
                     Button("Code kopieren") { copy(item) }
@@ -149,7 +153,8 @@ struct MainView: View {
         .font(.callout)
         .foregroundStyle(.secondary)
         .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.vertical, 9)
+        .background(.bar)
     }
 
     private func copy(_ item: AccountItem) {
@@ -195,7 +200,7 @@ struct AccountRow: View {
             Spacer(minLength: 8)
 
             ZStack(alignment: .trailing) {
-                CodeText(code: item.code(at: date), expiring: seconds <= 10)
+                CodeText(code: item.code(at: date), expiring: seconds <= 10, tint: tint, size: 23)
                     .opacity(copied ? 0 : 1)
                 if copied {
                     Label("Kopiert", systemImage: "checkmark.circle.fill")
@@ -208,10 +213,36 @@ struct AccountRow: View {
             .onTapGesture(perform: onCopy)
             .help("Klicken zum Kopieren")
 
-            CountdownRing(period: item.model.period, date: date, size: 22)
+            CountdownRing(period: item.model.period, date: date, tint: tint, size: 26)
         }
-        .padding(.vertical, 5)
-        .padding(.horizontal, 2)
+        .padding(.vertical, 9)
+        .padding(.horizontal, 12)
+        .glassSurface(tint: tint, cornerRadius: 18, interactive: true)
+    }
+
+    private var tint: Color {
+        Theme.tint(for: item.name)
+    }
+}
+
+/// Soft colour wash behind the list, so the glass cards have something to refract.
+private struct BackgroundWash: View {
+    var body: some View {
+        ZStack {
+            Rectangle().fill(.background)
+            LinearGradient(
+                colors: [Theme.colors(for: "a").1.opacity(0.22), .clear, Theme.colors(for: "e").0.opacity(0.18)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            RadialGradient(
+                colors: [Theme.colors(for: "c").0.opacity(0.16), .clear],
+                center: .init(x: 0.85, y: 0.1),
+                startRadius: 0,
+                endRadius: 320
+            )
+        }
+        .ignoresSafeArea()
     }
 }
 

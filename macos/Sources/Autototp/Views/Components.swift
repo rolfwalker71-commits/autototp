@@ -2,7 +2,7 @@ import AppKit
 import AutototpCore
 import SwiftUI
 
-/// Account logo, or a coloured letter tile like Contacts/Passwords use when there is none.
+/// Account logo, or a coloured letter tile in the account's own colour.
 struct LogoTile: View {
     let name: String
     let image: NSImage?
@@ -20,71 +20,69 @@ struct LogoTile: View {
                     .background(.white, in: shape)
             } else {
                 Text(initial)
-                    .font(.system(size: size * 0.46, weight: .semibold, design: .rounded))
+                    .font(Theme.codeFont(size: size * 0.5))
                     .foregroundStyle(.white)
                     .frame(width: size, height: size)
-                    .background(
-                        LinearGradient(colors: [color.opacity(0.85), color], startPoint: .top, endPoint: .bottom),
-                        in: shape
-                    )
+                    .background(Theme.gradient(for: name), in: shape)
             }
         }
-        .overlay(shape.strokeBorder(.primary.opacity(0.08), lineWidth: 0.5))
+        .overlay(shape.strokeBorder(.white.opacity(0.25), lineWidth: 0.5))
+        .shadow(color: Theme.tint(for: name).opacity(0.35), radius: size * 0.16, y: size * 0.06)
     }
 
     private var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
+        RoundedRectangle(cornerRadius: size * 0.28, style: .continuous)
     }
 
     private var initial: String {
         name.trimmingCharacters(in: .whitespaces).first.map { String($0).uppercased() } ?? "?"
     }
-
-    private var color: Color {
-        let palette: [Color] = [.blue, .indigo, .purple, .pink, .orange, .teal, .green, .cyan, .brown]
-        let hash = name.unicodeScalars.reduce(0) { ($0 &* 31 &+ Int($1.value)) & 0x7FFF_FFFF }
-        return palette[hash % palette.count]
-    }
 }
 
-/// Circular countdown like the verification codes in the Passwords app.
+/// Circular countdown in the account's colour; turns red for the last ten seconds.
 struct CountdownRing: View {
     let period: Int
     let date: Date
-    var size: CGFloat = 22
+    var tint: Color = .accentColor
+    var size: CGFloat = 24
 
     var body: some View {
         let progress = TOTP.progress(period: period, date: date)
         let seconds = TOTP.remainingSeconds(period: period, date: date)
-        let tint: Color = seconds <= 10 ? .red : .accentColor
+        let expiring = seconds <= 10
+        let color: Color = expiring ? .red : tint
         ZStack {
             Circle()
-                .stroke(.quaternary, lineWidth: size * 0.12)
+                .stroke(color.opacity(0.18), lineWidth: size * 0.13)
             Circle()
                 .trim(from: 0, to: progress)
-                .stroke(tint, style: StrokeStyle(lineWidth: size * 0.12, lineCap: .round))
+                .stroke(color, style: StrokeStyle(lineWidth: size * 0.13, lineCap: .round))
                 .rotationEffect(.degrees(-90))
+                .shadow(color: color.opacity(0.5), radius: expiring ? 4 : 2)
             Text("\(seconds)")
-                .font(.system(size: size * 0.4, weight: .semibold, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(seconds <= 10 ? .red : .secondary)
+                .font(Theme.codeFont(size: size * 0.46))
+                .foregroundStyle(color)
         }
         .frame(width: size, height: size)
+        .animation(.easeOut(duration: 0.25), value: expiring)
         .accessibilityLabel("Noch \(seconds) Sekunden gültig")
     }
 }
 
+/// The TOTP code in Dosis 800, tinted with the account's colour.
 struct CodeText: View {
     let code: String?
     let expiring: Bool
-    var size: CGFloat = 20
+    var tint: Color = .primary
+    var size: CGFloat = 22
 
     var body: some View {
-        Text(code.map(TOTP.format) ?? "––– –––")
-            .font(.system(size: size, weight: .semibold, design: .monospaced))
-            .monospacedDigit()
-            .foregroundStyle(code == nil ? AnyShapeStyle(.tertiary) : expiring ? AnyShapeStyle(.red) : AnyShapeStyle(.primary))
+        Text(code.map(TOTP.format) ?? "–––  –––")
+            .font(Theme.codeFont(size: size))
+            .kerning(size * 0.02)
+            .foregroundStyle(code == nil ? AnyShapeStyle(.tertiary) : expiring ? AnyShapeStyle(.red) : AnyShapeStyle(tint))
             .contentTransition(.numericText())
+            .animation(.snappy(duration: 0.35), value: code)
     }
 }
 
@@ -94,15 +92,14 @@ struct KeyCap: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 11, weight: .medium, design: .rounded))
-            .padding(.horizontal, 5)
-            .padding(.vertical, 1.5)
-            .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 4, style: .continuous).strokeBorder(.tertiary.opacity(0.5), lineWidth: 0.5))
+            .font(.system(size: 11, weight: .semibold, design: .rounded))
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .glassSurface(cornerRadius: 6)
     }
 }
 
-/// Behind-window blur for the floating panels.
+/// Behind-window blur for the panels on systems without Liquid Glass.
 struct VisualEffectBackground: NSViewRepresentable {
     var material: NSVisualEffectView.Material = .popover
 

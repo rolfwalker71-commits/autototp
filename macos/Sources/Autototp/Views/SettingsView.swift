@@ -69,7 +69,16 @@ struct SettingsView: View {
                 }
             }
 
-            Section("Daten") {
+            Section {
+                LabeledContent {
+                    Button("Tokens exportieren …") {
+                        Exporter.run(model: model)
+                    }
+                } label: {
+                    Text("Export")
+                    Text("Alle Accounts als otpauth://-Links – lesbar für Autototp, 2FAS, Aegis und andere. Die Datei enthält die Secrets im Klartext.")
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 LabeledContent {
                     Button("Im Finder zeigen") {
                         NSWorkspace.shared.activateFileViewerSelecting([model.store.fileURL])
@@ -81,6 +90,8 @@ struct SettingsView: View {
                         .truncationMode(.head)
                         .textSelection(.enabled)
                 }
+            } header: {
+                Text("Daten")
             }
         }
         .formStyle(.grouped)

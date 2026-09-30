@@ -105,6 +105,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         model.sheet = .importAccounts
     }
 
+    @objc func exportAccounts() {
+        NSApp.activate()
+        Exporter.run(model: model)
+    }
+
     private func bringToFront(_ window: NSWindow) {
         // Dock icon and ⌘-Tab only while a regular window is open; menu-bar-only otherwise.
         NSApp.setActivationPolicy(.regular)
@@ -345,6 +350,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         let fileMenu = NSMenu(title: "Ablage")
         fileMenu.addItem(item("Account hinzufügen …", #selector(showAddAccount), key: "n"))
         fileMenu.addItem(item("Importieren …", #selector(showImport), key: "i"))
+        let exportItem = item("Exportieren …", #selector(exportAccounts), key: "e")
+        exportItem.keyEquivalentModifierMask = [.command, .shift]
+        fileMenu.addItem(exportItem)
         fileMenu.addItem(.separator())
         fileMenu.addItem(withTitle: "Fenster schliessen", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
         addSubmenu(fileMenu, title: "Ablage", to: main)
@@ -398,11 +406,11 @@ final class FloatingPanel: NSPanel {
         isReleasedWhenClosed = false
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
 
-        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
-        let hosting = NSHostingView(rootView: content
-            .background(VisualEffectBackground(material: .popover))
-            .clipShape(shape)
-            .overlay(shape.strokeBorder(.primary.opacity(0.12), lineWidth: 0.5)))
+        // Liquid Glass fills the whole panel; older systems get the blurred material.
+        let rootView = AnyView(content
+            .glassSurface(cornerRadius: 26)
+            .padding(8))
+        let hosting = NSHostingView(rootView: rootView)
         contentView = hosting
         setContentSize(hosting.fittingSize)
     }

@@ -117,7 +117,7 @@ public enum ImportService {
         account.accountLogin = labelAccount.trimmingCharacters(in: .whitespaces)
         account.issuer = issuer
         account.secret = secret
-        account.windowTitleMatch = issuer
+        account.windowTitleMatch = firstNonEmpty(query[ExportService.matchParameter], issuer)
         account.digits = Int(query["digits"] ?? "") ?? 6
         account.period = Int(query["period"] ?? "") ?? 30
         account.algorithm = (query["algorithm"] ?? "SHA1").uppercased()

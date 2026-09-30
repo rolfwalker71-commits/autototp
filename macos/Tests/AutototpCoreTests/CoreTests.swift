@@ -139,6 +139,43 @@ struct ImportTests {
     }
 }
 
+struct ExportTests {
+    func roundTripsThroughOtpauth() {
+        var account = TotpAccount()
+        account.name = "Stooss VPN"
+        account.accountLogin = "rwalker@firma.ch"
+        account.issuer = "Viscosity"
+        account.windowTitleMatch = "Stooss Remote"
+        account.digits = 8
+        account.period = 60
+        account.algorithm = "SHA256"
+        let file = ExportService.file(for: [.init(account: account, secret: "jbswy3dp ehpk3pxp")])
+
+        expect(file.contains("otpauth://totp/Viscosity:rwalker%40firma.ch?"))
+        expect(!file.contains("jbswy3dp "))
+
+        let result = ImportService.parseOtpAuthText(file)
+        expect(result.accounts.count == 1)
+        let imported = result.accounts[0]
+        expect(imported.secret == "JBSWY3DPEHPK3PXP")
+        expect(imported.issuer == "Viscosity")
+        expect(imported.accountLogin == "rwalker@firma.ch")
+        expect(imported.windowTitleMatch == "Stooss Remote")
+        expect(imported.digits == 8)
+        expect(imported.period == 60)
+        expect(imported.algorithm == "SHA256")
+    }
+
+    func keepsDefaultsShort() {
+        var account = TotpAccount()
+        account.name = "GitHub"
+        account.issuer = "GitHub"
+        account.windowTitleMatch = "GitHub"
+        let uri = ExportService.uri(for: .init(account: account, secret: "JBSWY3DPEHPK3PXP"))
+        expect(uri == "otpauth://totp/GitHub:GitHub?secret=JBSWY3DPEHPK3PXP&issuer=GitHub")
+    }
+}
+
 struct StorageTests {
     func secretBoxRoundTrip() throws {
         let box = SecretBox(key: SymmetricKey(size: .bits256))

@@ -13,10 +13,12 @@ struct ConfirmFillView: View {
     var onChooseOther: () -> Void = {}
     var onCancel: () -> Void = {}
 
+    private var tint: Color { Theme.tint(for: item.name) }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 12) {
-                LogoTile(name: item.name, image: item.logo, size: 42)
+                LogoTile(name: item.name, image: item.logo, size: 46)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.name)
                         .font(.system(size: 14, weight: .semibold))
@@ -28,24 +30,24 @@ struct ConfirmFillView: View {
                 }
                 Spacer()
                 Text(matchLabel)
-                    .font(.system(size: 11, weight: .medium))
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 3)
-                    .background(.tint.opacity(0.15), in: Capsule())
-                    .foregroundStyle(.tint)
+                    .font(.system(size: 11, weight: .semibold))
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 4)
+                    .background(tint.opacity(0.18), in: Capsule())
+                    .foregroundStyle(tint)
                     .lineLimit(1)
             }
 
             TimelineView(.animation(minimumInterval: 0.1, paused: frozenDate != nil)) { context in
                 let now = frozenDate ?? context.date
                 HStack {
-                    CodeText(code: item.code(at: now), expiring: TOTP.remainingSeconds(period: item.model.period, date: now) <= 10, size: 30)
+                    CodeText(code: item.code(at: now), expiring: TOTP.remainingSeconds(period: item.model.period, date: now) <= 10, tint: tint, size: 38)
                     Spacer()
-                    CountdownRing(period: item.model.period, date: now, size: 30)
+                    CountdownRing(period: item.model.period, date: now, tint: tint, size: 34)
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(.background.opacity(0.6), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .glassSurface(tint: tint, cornerRadius: 16)
             }
 
             Label {
@@ -65,10 +67,11 @@ struct ConfirmFillView: View {
                 Button(sendEnter ? "Einfügen + ↩" : "Einfügen", action: onConfirm)
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
+                    .tint(tint)
             }
         }
-        .padding(18)
-        .frame(width: 380)
+        .padding(20)
+        .frame(width: 400)
     }
 }
 
@@ -229,6 +232,8 @@ private struct PickerRow: View {
     let date: Date
     let selected: Bool
 
+    private var tint: Color { Theme.tint(for: item.name) }
+
     var body: some View {
         let seconds = TOTP.remainingSeconds(period: item.model.period, date: date)
         HStack(spacing: 10) {
@@ -243,21 +248,17 @@ private struct PickerRow: View {
                     .lineLimit(1)
             }
             Spacer()
-            Text(item.code(at: date).map(TOTP.format) ?? "––– –––")
-                .font(.system(size: 16, weight: .semibold, design: .monospaced))
-                .monospacedDigit()
-                .foregroundStyle(selected ? AnyShapeStyle(.white) : seconds <= 10 ? AnyShapeStyle(.red) : AnyShapeStyle(.primary))
-            Text("\(seconds)s")
-                .font(.system(size: 11).monospacedDigit())
-                .foregroundStyle(selected ? AnyShapeStyle(.white.opacity(0.8)) : AnyShapeStyle(.secondary))
-                .frame(width: 26, alignment: .trailing)
+            CodeText(code: item.code(at: date), expiring: seconds <= 10, tint: selected ? .white : tint, size: 20)
+            CountdownRing(period: item.model.period, date: date, tint: selected ? .white : tint, size: 22)
         }
         .foregroundStyle(selected ? .white : .primary)
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
         .background {
             if selected {
-                RoundedRectangle(cornerRadius: 8, style: .continuous).fill(.tint)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Theme.gradient(for: item.name))
+                    .shadow(color: tint.opacity(0.5), radius: 8, y: 3)
             }
         }
         .contentShape(Rectangle())
