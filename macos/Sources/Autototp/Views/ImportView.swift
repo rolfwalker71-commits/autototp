@@ -79,9 +79,12 @@ struct ImportView: View {
             }
 
             HStack {
-                Text("Logos kannst du nach dem Import pro Account setzen.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+                Toggle("Logos automatisch laden", isOn: Binding(
+                    get: { model.settings.fetchLogos },
+                    set: { value in model.updateSettings { $0.fetchLogos = value } }
+                ))
+                .toggleStyle(.checkbox)
+                .help("Lädt die Symbole der Websites. Dabei werden die Domainnamen an einen Icon-Dienst gesendet.")
                 Spacer()
                 Button("Abbrechen", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
@@ -260,7 +263,10 @@ struct ImportView: View {
 
     private func importSelected() {
         do {
-            try model.importAccounts(rows)
+            let created = try model.importAccounts(rows)
+            if model.settings.fetchLogos {
+                Task { await model.fetchLogos(for: created) }
+            }
             dismiss()
         } catch {
             errorMessage = error.localizedDescription

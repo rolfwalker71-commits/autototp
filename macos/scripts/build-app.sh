@@ -71,5 +71,10 @@ echo "✔ $app"
 if [[ "${1:-}" == "--install" ]]; then
     rm -rf /Applications/Autototp.app
     cp -R "$app" /Applications/
-    echo "✔ /Applications/Autototp.app"
+    # Launch Services soll nur die installierte App kennen, nicht die Build-Kopie.
+    lsregister=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+    [[ -x $lsregister ]] && "$lsregister" -u "$PWD/$app" >/dev/null 2>&1 || true
+    rm -rf "$app"
+    [[ -x $lsregister ]] && "$lsregister" -f /Applications/Autototp.app >/dev/null 2>&1 || true
+    echo "✔ /Applications/Autototp.app (Build-Kopie entfernt)"
 fi

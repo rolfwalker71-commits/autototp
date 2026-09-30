@@ -13,12 +13,12 @@ struct ConfirmFillView: View {
     var onChooseOther: () -> Void = {}
     var onCancel: () -> Void = {}
 
-    private var tint: Color { Theme.tint(for: item.name) }
+    private var tint: Color { item.tint }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 12) {
-                LogoTile(name: item.name, image: item.logo, size: 46)
+                LogoTile(name: item.name, image: item.logo, size: 46, colorIndex: item.model.colorIndex)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.name)
                         .font(.system(size: 14, weight: .semibold))
@@ -33,7 +33,7 @@ struct ConfirmFillView: View {
                     .font(.system(size: 11, weight: .semibold))
                     .padding(.horizontal, 9)
                     .padding(.vertical, 4)
-                    .background(tint.opacity(0.18), in: Capsule())
+                    .background(tint.opacity(0.14), in: Capsule())
                     .foregroundStyle(tint)
                     .lineLimit(1)
             }
@@ -41,7 +41,7 @@ struct ConfirmFillView: View {
             TimelineView(.animation(minimumInterval: 0.1, paused: frozenDate != nil)) { context in
                 let now = frozenDate ?? context.date
                 HStack {
-                    CodeText(code: item.code(at: now), expiring: TOTP.remainingSeconds(period: item.model.period, date: now) <= 10, tint: tint, size: 38)
+                    CodeText(code: item.code(at: now), expiring: TOTP.remainingSeconds(period: item.model.period, date: now) <= 10, size: 38)
                     Spacer()
                     CountdownRing(period: item.model.period, date: now, tint: tint, size: 34)
                 }
@@ -232,12 +232,12 @@ private struct PickerRow: View {
     let date: Date
     let selected: Bool
 
-    private var tint: Color { Theme.tint(for: item.name) }
+    private var tint: Color { item.tint }
 
     var body: some View {
         let seconds = TOTP.remainingSeconds(period: item.model.period, date: date)
         HStack(spacing: 10) {
-            LogoTile(name: item.name, image: item.logo, size: 32)
+            LogoTile(name: item.name, image: item.logo, size: 32, colorIndex: item.model.colorIndex)
             VStack(alignment: .leading, spacing: 1) {
                 Text(item.name)
                     .font(.system(size: 13, weight: .medium))
@@ -257,8 +257,8 @@ private struct PickerRow: View {
         .background {
             if selected {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Theme.gradient(for: item.name))
-                    .shadow(color: tint.opacity(0.5), radius: 8, y: 3)
+                    .fill(item.gradient.opacity(0.85))
+                    .shadow(color: tint.opacity(0.28), radius: 6, y: 2)
             }
         }
         .contentShape(Rectangle())

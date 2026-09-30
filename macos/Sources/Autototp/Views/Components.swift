@@ -7,6 +7,7 @@ struct LogoTile: View {
     let name: String
     let image: NSImage?
     var size: CGFloat = 36
+    var colorIndex: Int?
 
     var body: some View {
         Group {
@@ -23,11 +24,11 @@ struct LogoTile: View {
                     .font(Theme.codeFont(size: size * 0.5))
                     .foregroundStyle(.white)
                     .frame(width: size, height: size)
-                    .background(Theme.gradient(for: name), in: shape)
+                    .background(Theme.gradient(for: name, index: colorIndex), in: shape)
             }
         }
         .overlay(shape.strokeBorder(.white.opacity(0.25), lineWidth: 0.5))
-        .shadow(color: Theme.tint(for: name).opacity(0.35), radius: size * 0.16, y: size * 0.06)
+        .shadow(color: .black.opacity(0.18), radius: size * 0.1, y: size * 0.04)
     }
 
     private var shape: RoundedRectangle {
@@ -53,12 +54,12 @@ struct CountdownRing: View {
         let color: Color = expiring ? .red : tint
         ZStack {
             Circle()
-                .stroke(color.opacity(0.18), lineWidth: size * 0.13)
+                .stroke(color.opacity(0.15), lineWidth: size * 0.13)
             Circle()
                 .trim(from: 0, to: progress)
                 .stroke(color, style: StrokeStyle(lineWidth: size * 0.13, lineCap: .round))
                 .rotationEffect(.degrees(-90))
-                .shadow(color: color.opacity(0.5), radius: expiring ? 4 : 2)
+                .shadow(color: color.opacity(expiring ? 0.4 : 0.15), radius: expiring ? 3 : 1)
             Text("\(seconds)")
                 .font(Theme.codeFont(size: size * 0.46))
                 .foregroundStyle(color)
@@ -93,6 +94,8 @@ struct KeyCap: View {
     var body: some View {
         Text(text)
             .font(.system(size: 11, weight: .semibold, design: .rounded))
+            .lineLimit(1)
+            .fixedSize()
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .glassSurface(cornerRadius: 6)

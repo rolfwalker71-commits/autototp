@@ -1,4 +1,5 @@
 import AppKit
+import AutototpCore
 import SwiftUI
 
 struct SettingsView: View {
@@ -26,6 +27,28 @@ struct SettingsView: View {
                     get: { model.settings.startMinimized },
                     set: { value in model.updateSettings { $0.startMinimized = value } }
                 ))
+            }
+
+            Section {
+                Picker("Zeilenhöhe", selection: Binding(
+                    get: { model.settings.density },
+                    set: { value in model.updateSettings { $0.density = value } }
+                )) {
+                    ForEach(RowDensity.allCases, id: \.self) { Text($0.label).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                Toggle("Bewegter Hintergrund", isOn: Binding(
+                    get: { model.settings.animatedBackground },
+                    set: { value in model.updateSettings { $0.animatedBackground = value } }
+                ))
+                Toggle("Logos automatisch laden", isOn: Binding(
+                    get: { model.settings.fetchLogos },
+                    set: { value in model.updateSettings { $0.fetchLogos = value } }
+                ))
+            } header: {
+                Text("Darstellung")
+            } footer: {
+                Text("Beim Laden der Logos wird der Domainname des Ausstellers an einen Icon-Dienst gesendet. Einzelne Logos holst du im Account-Editor mit „Logo holen“.")
             }
 
             Section {

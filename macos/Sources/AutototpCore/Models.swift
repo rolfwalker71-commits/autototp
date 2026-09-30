@@ -17,9 +17,25 @@ public struct StoredData: Codable, Equatable {
     }
 }
 
+public enum RowDensity: String, Codable, CaseIterable {
+    case comfortable
+    case compact
+
+    public var label: String {
+        switch self {
+        case .comfortable: return "Normal"
+        case .compact: return "Kompakt"
+        }
+    }
+}
+
 public struct AppSettings: Codable, Equatable {
     public var startMinimized = false
     public var sendEnterAfterCode = true
+    public var density = RowDensity.comfortable
+    /// Fetch favicons for new accounts. Off by default: it sends the issuer name to an icon service.
+    public var fetchLogos = false
+    public var animatedBackground = true
 
     public init() {}
 
@@ -27,6 +43,9 @@ public struct AppSettings: Codable, Equatable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         startMinimized = try c.decodeIfPresent(Bool.self, forKey: .startMinimized) ?? false
         sendEnterAfterCode = try c.decodeIfPresent(Bool.self, forKey: .sendEnterAfterCode) ?? true
+        density = try c.decodeIfPresent(RowDensity.self, forKey: .density) ?? .comfortable
+        fetchLogos = try c.decodeIfPresent(Bool.self, forKey: .fetchLogos) ?? false
+        animatedBackground = try c.decodeIfPresent(Bool.self, forKey: .animatedBackground) ?? true
     }
 }
 
@@ -45,6 +64,8 @@ public struct TotpAccount: Codable, Equatable, Identifiable {
     public var digits = 6
     public var period = 30
     public var algorithm = "SHA1"
+    /// Index into the app's palette; nil derives the colour from the name.
+    public var colorIndex: Int?
 
     public init() {}
 
@@ -60,6 +81,7 @@ public struct TotpAccount: Codable, Equatable, Identifiable {
         digits = try c.decodeIfPresent(Int.self, forKey: .digits) ?? 6
         period = try c.decodeIfPresent(Int.self, forKey: .period) ?? 30
         algorithm = try c.decodeIfPresent(String.self, forKey: .algorithm) ?? "SHA1"
+        colorIndex = try c.decodeIfPresent(Int.self, forKey: .colorIndex)
     }
 
     public var displayName: String {

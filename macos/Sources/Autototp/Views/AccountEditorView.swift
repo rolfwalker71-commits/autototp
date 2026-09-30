@@ -22,6 +22,8 @@ struct AccountEditorView: View {
     @State private var clearLogo = false
     @State private var showAdvanced = false
     @State private var errorMessage: String?
+    @State private var colorIndex: Int?
+    @State private var fetchingLogo = false
 
     init(model: AppModel, existing: AccountItem?, frozenDate: Date? = nil) {
         self.model = model
@@ -36,6 +38,7 @@ struct AccountEditorView: View {
             _digits = State(initialValue: existing.model.digits)
             _period = State(initialValue: existing.model.period)
             _algorithm = State(initialValue: existing.model.algorithm)
+            _colorIndex = State(initialValue: existing.model.colorIndex)
         }
     }
 
@@ -59,13 +62,19 @@ struct AccountEditorView: View {
             Form {
                 Section {
                     HStack(spacing: 14) {
-                        LogoTile(name: name.isEmpty ? "?" : name, image: currentLogo, size: 52)
+                        LogoTile(name: name.isEmpty ? "?" : name, image: currentLogo, size: 52, colorIndex: colorIndex)
                         VStack(alignment: .leading, spacing: 6) {
                             Text(existing == nil ? "Neuer Account" : "Account bearbeiten")
                                 .font(.headline)
                             HStack(spacing: 8) {
                                 Button("Logo wählen …", action: chooseLogo)
                                     .controlSize(.small)
+                                Button(fetchingLogo ? "Lädt …" : "Logo holen") {
+                                    Task { await fetchLogo() }
+                                }
+                                .controlSize(.small)
+                                .disabled(fetchingLogo || (issuer.isEmpty && name.isEmpty))
+                                .help("Lädt das Symbol der Website. Dabei wird der Domainname an einen Icon-Dienst gesendet.")
                                 if currentLogo != nil {
                                     Button("Entfernen") {
                                         newLogo = nil
@@ -77,6 +86,15 @@ struct AccountEditorView: View {
                         }
                     }
                     .padding(.vertical, 2)
+
+                    LabeledContent("Farbe") {
+                        HStack(spacing: 6) {
+                            colorDot(nil)
+                            ForEach(0..<Theme.paletteCount, id: \.self) { index in
+                                colorDot(index)
+                            }
+                        }
+                    }
                 }
 
                 Section {
@@ -176,6 +194,42 @@ struct AccountEditorView: View {
         .frame(width: 480, height: 640)
     }
 
+    /// nil = Farbe aus dem Namen ableiten.
+    private func colorDot(_ index: Int?) -> some View {
+        let selected = colorIndex == index
+        return Button {
+            colorIndex = index
+        } label: {
+            Circle()
+                .fill(index == nil
+                      ? AnyShapeStyle(Theme.gradient(for: name.isEmpty ? "?" : name))
+                      : AnyShapeStyle(Theme.gradient(for: "", index: index)))
+                .frame(width: 18, height: 18)
+                .overlay {
+                    if index == nil {
+                        Image(systemName: "a.circle.fill")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(.white.opacity(0.9))
+                    }
+                }
+                .overlay(Circle().strokeBorder(.primary.opacity(selected ? 0.9 : 0.15), lineWidth: selected ? 2 : 1))
+        }
+        .buttonStyle(.plain)
+        .help(index == nil ? "Automatisch aus dem Namen" : "Eigene Farbe")
+    }
+
+    private func fetchLogo() async {
+        fetchingLogo = true
+        defer { fetchingLogo = false }
+        if let image = await LogoFetcher.fetchIcon(issuer: issuer, login: login, name: name) {
+            newLogo = image
+            clearLogo = false
+            errorMessage = nil
+        } else {
+            errorMessage = "Kein Logo gefunden."
+        }
+    }
+
     private func chooseLogo() {
         let panel = NSOpenPanel()
         panel.title = "Logo wählen"
@@ -202,6 +256,7 @@ struct AccountEditorView: View {
         account.digits = digits
         account.period = period
         account.algorithm = algorithm
+        account.colorIndex = colorIndex
         do {
             try model.upsert(account, secret: secret, newLogo: newLogo, clearLogo: clearLogo)
             dismiss()

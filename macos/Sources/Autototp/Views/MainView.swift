@@ -52,7 +52,7 @@ struct MainView: View {
 
             footer
         }
-        .background(BackgroundWash())
+        .background(BackgroundWash(animated: model.settings.animatedBackground))
         .frame(minWidth: 440, idealWidth: 480, minHeight: 360, idealHeight: 560)
         .navigationTitle("Autototp")
         .searchable(text: $search, placement: .toolbar, prompt: "Name, Aussteller oder Match")
@@ -104,7 +104,7 @@ struct MainView: View {
             let now = frozenDate ?? context.date
             List(selection: $selection) {
                 ForEach(filtered) { item in
-                    AccountRow(item: item, date: now, copied: copiedID == item.id) {
+                    AccountRow(item: item, date: now, density: model.settings.density, copied: copiedID == item.id) {
                         copy(item)
                     }
                     .tag(item.id)
@@ -173,34 +173,40 @@ struct MainView: View {
 struct AccountRow: View {
     let item: AccountItem
     let date: Date
+    var density: RowDensity = .comfortable
     var copied = false
     var onCopy: () -> Void = {}
 
+    private var compact: Bool { density == .compact }
+
     var body: some View {
         let seconds = TOTP.remainingSeconds(period: item.model.period, date: date)
-        HStack(spacing: 12) {
-            LogoTile(name: item.name, image: item.logo, size: 36)
+        let progress = TOTP.progress(period: item.model.period, date: date)
+        HStack(spacing: compact ? 9 : 12) {
+            LogoTile(name: item.name, image: item.logo, size: compact ? 26 : 36, colorIndex: item.model.colorIndex)
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(item.name)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: compact ? 12 : 13, weight: .semibold))
                     .lineLimit(1)
                 if !item.login.isEmpty {
                     Text(item.login)
-                        .font(.system(size: 12))
+                        .font(.system(size: compact ? 10.5 : 12))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
-                Text(item.detail)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.tertiary)
-                    .lineLimit(1)
+                if !compact {
+                    Text(item.detail)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
             }
 
             Spacer(minLength: 8)
 
             ZStack(alignment: .trailing) {
-                CodeText(code: item.code(at: date), expiring: seconds <= 10, tint: tint, size: 23)
+                CodeText(code: item.code(at: date), expiring: seconds <= 10, size: compact ? 19 : 23)
                     .opacity(copied ? 0 : 1)
                 if copied {
                     Label("Kopiert", systemImage: "checkmark.circle.fill")
@@ -213,36 +219,68 @@ struct AccountRow: View {
             .onTapGesture(perform: onCopy)
             .help("Klicken zum Kopieren")
 
-            CountdownRing(period: item.model.period, date: date, tint: tint, size: 26)
+            CountdownRing(period: item.model.period, date: date, tint: tint, size: compact ? 20 : 26)
         }
-        .padding(.vertical, 9)
+        .padding(.vertical, compact ? 5 : 9)
         .padding(.horizontal, 12)
-        .glassSurface(tint: tint, cornerRadius: 18, interactive: true)
+        .overlay(alignment: .bottom) {
+            ExpiryBar(progress: progress, tint: (seconds <= 10 ? .red : tint).opacity(0.55))
+                .padding(.horizontal, 12)
+                .padding(.bottom, 3)
+        }
+        .glassSurface(tint: tint, cornerRadius: compact ? 14 : 18, interactive: true)
     }
 
     private var tint: Color {
-        Theme.tint(for: item.name)
+        item.tint
+    }
+}
+
+/// Thin bar along the bottom edge of a card that empties as the code expires.
+struct ExpiryBar: View {
+    let progress: Double
+    let tint: Color
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(tint.opacity(0.15))
+                Capsule()
+                    .fill(LinearGradient(colors: [tint.opacity(0.7), tint], startPoint: .leading, endPoint: .trailing))
+                    .frame(width: max(0, geo.size.width * progress))
+            }
+        }
+        .frame(height: 2.5)
     }
 }
 
 /// Soft colour wash behind the list, so the glass cards have something to refract.
+/// Slowly drifting when enabled – and always still when the system asks for less motion.
 private struct BackgroundWash: View {
+    var animated = true
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
-        ZStack {
-            Rectangle().fill(.background)
-            LinearGradient(
-                colors: [Theme.colors(for: "a").1.opacity(0.22), .clear, Theme.colors(for: "e").0.opacity(0.18)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            RadialGradient(
-                colors: [Theme.colors(for: "c").0.opacity(0.16), .clear],
-                center: .init(x: 0.85, y: 0.1),
-                startRadius: 0,
-                endRadius: 320
-            )
+        TimelineView(.animation(minimumInterval: 1 / 20, paused: !animated || reduceMotion)) { context in
+            let t = context.date.timeIntervalSinceReferenceDate / 26
+            ZStack {
+                Rectangle().fill(.background)
+                blob(Theme.colors(index: 0).1, x: 0.18 + 0.12 * sin(t), y: 0.12 + 0.08 * cos(t * 0.8), opacity: 0.12)
+                blob(Theme.colors(index: 2).0, x: 0.85 + 0.1 * cos(t * 0.9), y: 0.18 + 0.1 * sin(t * 1.1), opacity: 0.1)
+                blob(Theme.colors(index: 4).1, x: 0.3 + 0.14 * cos(t * 0.7), y: 0.88 + 0.07 * sin(t), opacity: 0.1)
+                blob(Theme.colors(index: 1).0, x: 0.8 + 0.12 * sin(t * 1.2), y: 0.8 + 0.1 * cos(t * 0.6), opacity: 0.08)
+            }
+            .ignoresSafeArea()
         }
-        .ignoresSafeArea()
+    }
+
+    private func blob(_ color: Color, x: Double, y: Double, opacity: Double) -> some View {
+        RadialGradient(
+            colors: [color.opacity(opacity), .clear],
+            center: UnitPoint(x: x, y: y),
+            startRadius: 0,
+            endRadius: 260
+        )
     }
 }
 

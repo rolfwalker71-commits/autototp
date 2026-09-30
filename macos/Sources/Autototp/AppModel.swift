@@ -27,6 +27,9 @@ struct AccountItem: Identifiable, Equatable {
         return parts.isEmpty ? "Kein Fenstertitel-Match" : parts.joined(separator: " · ")
     }
 
+    var tint: Color { Theme.tint(for: name, index: model.colorIndex) }
+    var gradient: LinearGradient { Theme.gradient(for: name, index: model.colorIndex) }
+
     func code(at date: Date = Date()) -> String? {
         guard let secret else {
             return nil
@@ -129,7 +132,9 @@ final class AppModel: ObservableObject {
         reloadItems()
     }
 
-    func importAccounts(_ imported: [ImportedAccount]) throws {
+    @discardableResult
+    func importAccounts(_ imported: [ImportedAccount]) throws -> [UUID] {
+        var created: [UUID] = []
         for item in imported where item.isSelected {
             var account = TotpAccount()
             account.name = item.name.trimmingCharacters(in: .whitespaces)
@@ -141,9 +146,11 @@ final class AppModel: ObservableObject {
             account.period = item.period
             account.algorithm = item.algorithm
             data.accounts.append(account)
+            created.append(account.id)
         }
         persist()
         reloadItems()
+        return created
     }
 
     func delete(_ id: UUID) {
@@ -151,6 +158,27 @@ final class AppModel: ObservableObject {
             LogoStore.delete(logo, in: store.logosDirectory)
         }
         data.accounts.removeAll { $0.id == id }
+        persist()
+        reloadItems()
+    }
+
+    /// Downloads favicons for accounts without a logo. Only called on explicit request.
+    func fetchLogos(for ids: [UUID]) async {
+        for id in ids {
+            guard let account = data.accounts.first(where: { $0.id == id }), account.logoFileName == nil else {
+                continue
+            }
+            guard let image = await LogoFetcher.fetchIcon(
+                issuer: account.issuer, login: account.accountLogin, name: account.name
+            ) else {
+                continue
+            }
+            guard let index = data.accounts.firstIndex(where: { $0.id == id }),
+                  let file = try? LogoStore.save(image, for: id, in: store.logosDirectory) else {
+                continue
+            }
+            data.accounts[index].logoFileName = file
+        }
         persist()
         reloadItems()
     }

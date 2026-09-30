@@ -3,15 +3,16 @@ import AutototpCore
 import SwiftUI
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var model: AppModel!
     private let hotkey = HotkeyService()
     private var statusItem: NSStatusItem!
     private var mainWindow: NSWindow?
     private var settingsWindow: NSWindow?
     private var panel: FloatingPanel?
-    private var menuTimer: Timer?
-    private var menuCodeItems: [(NSMenuItem, UUID)] = []
+    private var menuBarPanel: FloatingPanel?
+    private var outsideClickMonitor: Any?
+    private var panelResignObserver: NSObjectProtocol?
 
     // MARK: Lifecycle
 
@@ -43,6 +44,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         }
         if !AXIsProcessTrusted() {
             Permissions.requestAccessibility()
+        }
+        if CommandLine.arguments.contains("--open-menu-panel") {
+            // Dokumentations-/Testhilfe: öffnet das Menüleisten-Panel ohne Klick.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.toggleMenuBarPanel()
+            }
         }
     }
 
@@ -231,40 +238,82 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         statusItem.button?.image = StatusIcon.make()
         statusItem.button?.toolTip = "Autototp"
-        let menu = NSMenu()
-        menu.delegate = self
-        statusItem.menu = menu
+        statusItem.button?.target = self
+        statusItem.button?.action = #selector(statusItemClicked)
+        statusItem.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
     }
 
-    func menuNeedsUpdate(_ menu: NSMenu) {
-        guard menu === statusItem.menu else { return }
-        menu.removeAllItems()
-        menuCodeItems = []
-
-        if model.items.isEmpty {
-            menu.addItem(disabled("Noch keine Accounts"))
+    @objc private func statusItemClicked() {
+        let rightClick = NSApp.currentEvent?.type == .rightMouseUp
+            || NSApp.currentEvent?.modifierFlags.contains(.control) == true
+        if rightClick {
+            showStatusMenu()
         } else {
-            menu.addItem(NSMenuItem.sectionHeader(title: "Klicken kopiert den Code"))
-            for item in model.items.prefix(25) {
-                let entry = NSMenuItem(title: item.name, action: #selector(copyFromMenu(_:)), keyEquivalent: "")
-                entry.target = self
-                entry.representedObject = item.id
-                if !item.login.isEmpty {
-                    entry.subtitle = item.login
-                }
-                entry.image = menuIcon(for: item)
-                entry.badge = NSMenuItemBadge(string: item.code().map(TOTP.format) ?? "–")
-                menu.addItem(entry)
-                menuCodeItems.append((entry, item.id))
-            }
+            toggleMenuBarPanel()
         }
+    }
 
-        menu.addItem(.separator())
-        let fillItem = NSMenuItem(title: "Code einfügen …", action: #selector(handleHotkey), keyEquivalent: "t")
-        fillItem.keyEquivalentModifierMask = [.control, .option]
-        fillItem.target = self
-        menu.addItem(fillItem)
+    /// Glass panel under the menu bar icon with search, codes and a footer bar.
+    private func toggleMenuBarPanel() {
+        if menuBarPanel != nil {
+            closeMenuBarPanel()
+            return
+        }
+        closePanel()
+
+        let view = MenuBarView(
+            model: model,
+            onFill: { [weak self] in
+                self?.closeMenuBarPanel()
+                self?.handleHotkey()
+            },
+            onOpen: { [weak self] in
+                self?.closeMenuBarPanel()
+                self?.showMainWindow()
+            },
+            onSettings: { [weak self] in
+                self?.closeMenuBarPanel()
+                self?.showSettings()
+            },
+            onAdd: { [weak self] in
+                self?.closeMenuBarPanel()
+                self?.showAddAccount()
+            },
+            onQuit: { NSApp.terminate(nil) }
+        )
+        let newPanel = FloatingPanel(content: view, onCancel: { [weak self] in self?.closeMenuBarPanel() })
+        newPanel.positionBelowStatusItem(statusItem)
+        menuBarPanel = newPanel
+        newPanel.makeKeyAndOrderFront(nil)
+
+        // Any click outside the panel closes it, like a menu.
+        outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            self?.closeMenuBarPanel()
+        }
+        panelResignObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.didResignKeyNotification, object: newPanel, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.closeMenuBarPanel() }
+        }
+    }
+
+    private func closeMenuBarPanel() {
+        if let outsideClickMonitor {
+            NSEvent.removeMonitor(outsideClickMonitor)
+        }
+        outsideClickMonitor = nil
+        if let panelResignObserver {
+            NotificationCenter.default.removeObserver(panelResignObserver)
+        }
+        panelResignObserver = nil
+        menuBarPanel?.orderOut(nil)
+        menuBarPanel = nil
+    }
+
+    private func showStatusMenu() {
+        let menu = NSMenu()
         menu.addItem(item("Autototp öffnen", #selector(showMainWindow)))
+        menu.addItem(item("Code einfügen …", #selector(handleHotkey)))
         menu.addItem(item("Einstellungen …", #selector(showSettings), key: ","))
         menu.addItem(.separator())
         let loginItem = item("Bei der Anmeldung öffnen", #selector(toggleLoginItem))
@@ -272,26 +321,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         menu.addItem(loginItem)
         menu.addItem(.separator())
         menu.addItem(item("Autototp beenden", #selector(NSApplication.terminate(_:)), key: "q", target: NSApp))
-    }
-
-    func menuWillOpen(_ menu: NSMenu) {
-        guard menu === statusItem.menu else { return }
-        let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.refreshMenuCodes() }
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        menuTimer = timer
-    }
-
-    func menuDidClose(_ menu: NSMenu) {
-        menuTimer?.invalidate()
-        menuTimer = nil
-    }
-
-    private func refreshMenuCodes() {
-        for (entry, id) in menuCodeItems {
-            entry.badge = NSMenuItemBadge(string: model.item(id)?.code().map(TOTP.format) ?? "–")
-        }
+        statusItem.menu = menu
+        statusItem.button?.performClick(nil)
+        statusItem.menu = nil
     }
 
     @objc private func toggleLoginItem() {
@@ -306,27 +338,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         }
     }
 
-    @objc private func copyFromMenu(_ sender: NSMenuItem) {
-        if let id = sender.representedObject as? UUID, let item = model.item(id) {
-            model.copyCode(item)
-        }
-    }
-
-    private func menuIcon(for item: AccountItem) -> NSImage? {
-        let renderer = ImageRenderer(content: LogoTile(name: item.name, image: item.logo, size: 18))
-        renderer.scale = NSScreen.main?.backingScaleFactor ?? 2
-        return renderer.nsImage
-    }
-
     private func item(_ title: String, _ action: Selector, key: String = "", target: AnyObject? = nil) -> NSMenuItem {
         let entry = NSMenuItem(title: title, action: action, keyEquivalent: key)
         entry.target = target ?? self
-        return entry
-    }
-
-    private func disabled(_ title: String) -> NSMenuItem {
-        let entry = NSMenuItem(title: title, action: nil, keyEquivalent: "")
-        entry.isEnabled = false
         return entry
     }
 
@@ -420,6 +434,18 @@ final class FloatingPanel: NSPanel {
 
     override func cancelOperation(_ sender: Any?) {
         onCancel()
+    }
+
+    /// Anchored under the menu bar icon, like a menu.
+    func positionBelowStatusItem(_ statusItem: NSStatusItem) {
+        guard let buttonWindow = statusItem.button?.window else {
+            positionOnActiveScreen()
+            return
+        }
+        let anchor = buttonWindow.frame
+        let visible = (buttonWindow.screen ?? NSScreen.main)?.visibleFrame ?? .zero
+        let x = min(max(anchor.midX - frame.width / 2, visible.minX + 8), visible.maxX - frame.width - 8)
+        setFrameOrigin(NSPoint(x: x, y: anchor.minY - frame.height - 2))
     }
 
     /// Horizontally centred, in the upper third of the screen under the mouse – where Spotlight appears.

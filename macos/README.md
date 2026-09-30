@@ -3,12 +3,14 @@
 Native Menüleisten-App (SwiftUI/AppKit) mit denselben Funktionen wie die Windows-Version.
 
 - Account-Liste mit Live-Codes und Countdown-Ring, Suche in der Toolbar
-- Menüleisten-Menü mit allen Codes (Klick kopiert)
+- Menüleisten-Panel mit Suchfeld, allen Codes und Aktionsleiste (Klick kopiert); Rechtsklick öffnet das klassische Menü
 - Globaler Kurzbefehl **⌃⌥T**: erkennt das aktive Fenster, bestätigt den passenden Account oder zeigt eine Spotlight-artige Schnellauswahl und tippt den Code (optional mit Return) ein
 - Import von 2FAS-Backups (auch passwortgeschützt) und `otpauth://`-Links; bereits vorhandene Secrets werden erkannt
 - Export aller Tokens als `otpauth://`-Links (Ablage → Exportieren …, ⇧⌘E) – lesbar für Autototp auf anderen Geräten, 2FAS, Aegis und andere. Die Datei enthält die Secrets im Klartext und wird nur mit eigenen Leserechten geschrieben.
 - Liquid Glass ab macOS 26 (darunter Material), Farbe pro Account in Kachel, Code und Ring, Codes in der mitgelieferten Schrift Dosis 800 (`Resources/Fonts`, SIL Open Font License)
-- Logos pro Account, Autostart über Anmeldeobjekte, Fenster schliessen = App bleibt in der Menüleiste
+- Logos pro Account – eigene Bilder oder „Logo holen“ (fragt eine Favicon-Adresse ab; standardmässig aus, weil dabei der Domainname des Ausstellers an einen Icon-Dienst geht)
+- Farbe pro Account frei wählbar, Ablaufbalken an jeder Karte, Zeilenhöhe Normal/Kompakt, bewegter Hintergrund (abschaltbar, respektiert „Bewegung reduzieren“)
+- Autostart über Anmeldeobjekte, Fenster schliessen = App bleibt in der Menüleiste
 
 ## Bauen
 

@@ -16,17 +16,27 @@ enum Theme {
         (Color(red: 0.87, green: 0.19, blue: 0.29), Color(red: 1.00, green: 0.42, blue: 0.42)), // rot
     ]
 
-    static func colors(for name: String) -> (Color, Color) {
+    static var paletteCount: Int { palette.count }
+
+    static func colors(index: Int) -> (Color, Color) {
+        palette[((index % palette.count) + palette.count) % palette.count]
+    }
+
+    /// A chosen colour wins; otherwise the name decides, so every account keeps one colour.
+    static func colors(for name: String, index: Int? = nil) -> (Color, Color) {
+        if let index {
+            return colors(index: index)
+        }
         let hash = name.unicodeScalars.reduce(UInt32(7)) { ($0 &* 31 &+ $1.value) & 0x7FFF_FFFF }
         return palette[Int(hash) % palette.count]
     }
 
-    static func tint(for name: String) -> Color {
-        colors(for: name).0
+    static func tint(for name: String, index: Int? = nil) -> Color {
+        colors(for: name, index: index).0
     }
 
-    static func gradient(for name: String) -> LinearGradient {
-        let (start, end) = colors(for: name)
+    static func gradient(for name: String, index: Int? = nil) -> LinearGradient {
+        let (start, end) = colors(for: name, index: index)
         return LinearGradient(colors: [end, start], startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
@@ -77,7 +87,7 @@ private struct GlassSurface: ViewModifier {
         } else {
             content
                 .background(.regularMaterial, in: shape)
-                .background(tint.map { $0.opacity(0.16) } ?? .clear, in: shape)
+                .background(tint.map { $0.opacity(0.07) } ?? .clear, in: shape)
                 .overlay(shape.strokeBorder(.white.opacity(0.16), lineWidth: 0.5))
         }
     }
@@ -86,7 +96,7 @@ private struct GlassSurface: ViewModifier {
     private var style: Glass {
         var glass = Glass.regular
         if let tint {
-            glass = glass.tint(tint.opacity(0.16))
+            glass = glass.tint(tint.opacity(0.07))
         }
         if interactive {
             glass = glass.interactive()
