@@ -58,6 +58,8 @@ for size in 16 32 128 256 512; do
     sips -z $double $double "$source_icon" --out "$iconset/icon_${size}x${size}@2x.png" >/dev/null
 done
 iconutil -c icns "$iconset" -o "$app/Contents/Resources/AppIcon.icns"
+# Release-Asset icon.png für die Landing Page (beim Release mit hochladen)
+sips -s format png "$app/Contents/Resources/AppIcon.icns" --out build/icon.png >/dev/null
 
 echo "▸ Signieren"
 # A stable identity keeps the Accessibility permission across rebuilds; ad hoc changes it every build.
