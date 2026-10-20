@@ -134,6 +134,76 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
 
+    // MARK: URL-Aufruf
+
+    /// Programme, in die ein URL-Aufruf tippen darf. Bewusst eng gehalten: sonst könnte eine Webseite über einen
+    /// `autototp://`-Link einen Code in den Browser tippen lassen. Erweiterbar über `defaults write com.rolfwalker71.autototp urlFillAllowedApps -array "<Bundle-ID>"`.
+    private var urlFillAllowedApps: Set<String> {
+        Set(["com.viscosityvpn.Viscosity"]).union(UserDefaults.standard.stringArray(forKey: "urlFillAllowedApps") ?? [])
+    }
+
+    /// `autototp://fill?account=<Name>&app=<Bundle-ID>&enter=0|1`  tippt den aktuellen Code des Accounts in das vorderste Fenster.
+    /// `autototp://code?account=<Name>&app=<Bundle-ID>`            legt den Code (als vertraulich markiert) in die Zwischenablage.
+    /// Beide nur, wenn das genannte Programm vorne ist und in `urlFillAllowedApps` steht.
+    /// Bleiben weniger als 4 Sekunden im Code-Zeitraum, wird auf den nächsten gewartet.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls where url.scheme == "autototp" && (url.host == "fill" || url.host == "code") {
+            handleURL(url)
+        }
+    }
+
+    private func handleURL(_ url: URL) {
+        let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        func value(_ name: String) -> String { query.first { $0.name == name }?.value ?? "" }
+        let account = value("account").trimmingCharacters(in: .whitespaces)
+        let bundleID = value("app")
+        let pressReturn = value("enter") == "1"
+        let copyOnly = url.host == "code"
+
+        guard !account.isEmpty, model != nil else { return }
+        guard AXIsProcessTrusted() else {
+            askForAccessibility()
+            return
+        }
+        guard urlFillAllowedApps.contains(bundleID), NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleID else {
+            NSLog("Autototp: URL-Aufruf abgelehnt, «%@» ist nicht erlaubt oder nicht vorne.", bundleID)
+            NSSound.beep()
+            return
+        }
+
+        let needle = account.lowercased()
+        let usable = model.items.filter { $0.secret != nil }
+        var matches = usable.filter { $0.name.lowercased() == needle }
+        if matches.isEmpty {
+            matches = usable.filter { item in
+                [item.name, item.login, item.issuer, item.model.windowTitleMatch].contains { !$0.isEmpty && $0.lowercased().contains(needle) }
+            }
+        }
+        guard matches.count == 1, let item = matches.first else {
+            NSLog("Autototp: URL-Aufruf für «%@» ergab %d Treffer, es wird nichts getippt.", account, matches.count)
+            NSSound.beep()
+            return
+        }
+
+        let remaining = TOTP.remaining(period: item.model.period)
+        let delay = remaining < 4 ? remaining + 0.3 : 0
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+            // Zum Zeitpunkt erneut prüfen und den Code erst jetzt berechnen.
+            guard NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleID,
+                  let code = self?.model.item(item.id)?.code() else { return }
+            if copyOnly {
+                let pasteboard = NSPasteboard.general
+                pasteboard.clearContents()
+                pasteboard.setString(code, forType: .string)
+                // Marker, die Zwischenablage-Verlaufsprogramme respektieren: nicht aufnehmen.
+                pasteboard.setData(Data(), forType: NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType"))
+                pasteboard.setData(Data(), forType: NSPasteboard.PasteboardType("org.nspasteboard.TransientType"))
+            } else {
+                KeyTyper.type(code, pressReturn: pressReturn)
+            }
+        }
+    }
+
     // MARK: Hotkey flow
 
     @objc func handleHotkey() {
