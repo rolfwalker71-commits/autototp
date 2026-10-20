@@ -10,6 +10,7 @@ Native Menüleisten-App (SwiftUI/AppKit) mit denselben Funktionen wie die Window
 - Liquid Glass ab macOS 26 (darunter Material), Farbe pro Account in Kachel, Code und Ring, Codes in der mitgelieferten Schrift Dosis 800 (`Resources/Fonts`, SIL Open Font License)
 - Logos pro Account – eigene Bilder oder „Logo holen“ (fragt eine Favicon-Adresse ab; standardmässig aus, weil dabei der Domainname des Ausstellers an einen Icon-Dienst geht)
 - Farbe pro Account frei wählbar, Ablaufbalken an jeder Karte, Zeilenhöhe Normal/Kompakt, bewegter Hintergrund (abschaltbar, respektiert „Bewegung reduzieren“)
+- **URL-Aufrufe** für andere Programme, z. B. das Support-Cockpit (siehe unten)
 - Autostart über Anmeldeobjekte, Fenster schliessen = App bleibt in der Menüleiste
 
 ## Bauen
@@ -37,6 +38,15 @@ build/Autototp.app/Contents/MacOS/Autototp --render-screens /tmp/autototp-screen
 Für ⌃⌥T muss Autototp unter Systemeinstellungen → Datenschutz & Sicherheit → **Gerätesteuerung und Datenzugriff** eingeschaltet sein (bis macOS 26 hiess die Kategorie **Bedienungshilfen**). Damit liest die App den Titel des aktiven Fensters und tippt den Code ein.
 
 Die Freigabe hängt an der Code-Signatur. `build-app.sh` signiert automatisch mit dem ersten „Apple Development“-Zertifikat (Xcode → Einstellungen → Accounts), dann bleibt sie über Neubauten erhalten. Ohne Zertifikat wird ad hoc signiert, und die Freigabe muss nach jedem Neubau erneuert werden (alten Eintrag mit „−“ entfernen, neu hinzufügen). Eine andere Identität: `AUTOTOTP_SIGN_IDENTITY="…" scripts/build-app.sh`.
+
+## URL-Aufrufe
+
+- `autototp://fill?account=<Name>&app=<Bundle-ID>&enter=0|1` tippt den aktuellen Code des Accounts ins vorderste Fenster.
+- `autototp://code?account=<Name>&app=<Bundle-ID>` legt den Code in die Zwischenablage, als vertraulich und flüchtig markiert (Zwischenablage-Verlaufsprogramme nehmen ihn nicht auf).
+
+Beides geschieht nur, wenn das Programm `app` gerade vorne ist **und** erlaubt ist. Erlaubt ist standardmässig nur Viscosity (`com.viscosityvpn.Viscosity`),
+weitere Programme: `defaults write com.rolfwalker71.autototp urlFillAllowedApps -array "<Bundle-ID>"`. So kann eine Webseite über einen `autototp://`-Link keinen Code in den Browser tippen lassen.
+Das Konto wird über den Namen gefunden (genau, sonst enthält); bei mehreren Treffern passiert nichts. Bleiben weniger als 4 Sekunden im Code-Zeitraum, wird auf den nächsten gewartet.
 
 ## Daten und Sicherheit
 
