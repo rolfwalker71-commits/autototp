@@ -125,6 +125,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NSApp.setActivationPolicy(.regular)
         // Ohne ignoringOtherApps bleibt das Fenster hinter der App, die gerade vorne ist.
         NSApp.activate(ignoringOtherApps: true)
+        // Programme, die immer oben bleiben, verdecken sonst das gerade geöffnete Fenster.
+        window.level = .floating
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
         // Der Wechsel der Aktivierungsart greift erst im nächsten Durchlauf.
@@ -132,6 +134,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             NSApp.activate(ignoringOtherApps: true)
             window.makeKeyAndOrderFront(nil)
         }
+    }
+
+    /// Solange das Fenster benutzt wird, liegt es über Programmen, die immer oben bleiben;
+    /// danach verhält es sich wieder wie ein normales Fenster.
+    func windowDidBecomeKey(_ notification: Notification) {
+        (notification.object as? NSWindow)?.level = .floating
+    }
+
+    func windowDidResignKey(_ notification: Notification) {
+        (notification.object as? NSWindow)?.level = .normal
     }
 
     func windowWillClose(_ notification: Notification) {
@@ -500,7 +512,9 @@ final class FloatingPanel: NSPanel {
         // Kein Fensterschatten: Er legte sich als dunkle Fläche hinter die runden Ecken.
         hasShadow = false
         isMovableByWindowBackground = true
-        level = .floating
+        // Über Fenster, die immer oben bleiben (z. B. VPN-Programme): .floating allein
+        // reicht nicht, wenn das andere Programm dieselbe Ebene nutzt.
+        level = .statusBar
         hidesOnDeactivate = false
         isReleasedWhenClosed = false
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
@@ -541,7 +555,9 @@ final class FloatingPanel: NSPanel {
         setFrameOrigin(NSPoint(x: x, y: anchor.minY - frame.height - 2))
     }
 
-    /// Horizontally centred, in the upper third of the screen under the mouse – where Spotlight appears.
+    /// Horizontally centred in the lower part of the screen under the mouse.
+    /// Oben sitzen oft Fenster, die immer vorne bleiben (VPN-Programme, Monitore);
+    /// unten ist der Platz frei, und das Panel bleibt verschiebbar.
     func positionOnActiveScreen() {
         let mouse = NSEvent.mouseLocation
         let screen = NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.main
@@ -550,11 +566,11 @@ final class FloatingPanel: NSPanel {
             return
         }
         let size = frame.size
-        let origin = NSPoint(
-            x: visible.midX - size.width / 2,
-            y: visible.maxY - visible.height * 0.28 - size.height / 2
-        )
-        setFrameOrigin(origin)
+        let x = min(max(visible.midX - size.width / 2, visible.minX + 8), max(visible.maxX - size.width - 8, visible.minX + 8))
+        // Unterkante knapp über dem Dock, aber nicht angeklebt.
+        let lowered = visible.minY + visible.height * 0.16
+        let y = max(min(lowered, visible.maxY - size.height - 8), visible.minY + 8)
+        setFrameOrigin(NSPoint(x: x, y: y))
     }
 }
 
