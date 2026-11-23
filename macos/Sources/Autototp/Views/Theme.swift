@@ -66,6 +66,20 @@ enum Theme {
     }
 }
 
+/// Version und Build aus der Info.plist.
+enum AppInfo {
+    static var version: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
+    }
+
+    static var build: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "?"
+    }
+
+    /// "1.2.0 (4)"
+    static var versionLine: String { "\(version) (\(build))" }
+}
+
 // MARK: - Liquid Glass surfaces
 
 extension View {

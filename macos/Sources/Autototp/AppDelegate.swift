@@ -13,6 +13,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var menuBarPanel: FloatingPanel?
     private var outsideClickMonitor: Any?
     private var panelResignObserver: NSObjectProtocol?
+    /// Dokumentationsmodus: Panel bleibt offen, auch ohne Tastaturfokus.
+    private var demoPanel = false
 
     // MARK: Lifecycle
 
@@ -46,6 +48,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             Permissions.requestAccessibility()
         }
         if CommandLine.arguments.contains("--open-menu-panel") {
+            demoPanel = true
             // Dokumentations-/Testhilfe: öffnet das Menüleisten-Panel ohne Klick.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                 self?.toggleMenuBarPanel()
@@ -113,15 +116,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     @objc func exportAccounts() {
-        NSApp.activate()
+        NSApp.activate(ignoringOtherApps: true)
         Exporter.run(model: model)
     }
 
     private func bringToFront(_ window: NSWindow) {
         // Dock icon and ⌘-Tab only while a regular window is open; menu-bar-only otherwise.
         NSApp.setActivationPolicy(.regular)
-        NSApp.activate()
+        // Ohne ignoringOtherApps bleibt das Fenster hinter der App, die gerade vorne ist.
+        NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
+        window.orderFrontRegardless()
+        // Der Wechsel der Aktivierungsart greift erst im nächsten Durchlauf.
+        DispatchQueue.main.async {
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+        }
     }
 
     func windowWillClose(_ notification: Notification) {
@@ -290,7 +300,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     private func askForAccessibility() {
-        NSApp.activate()
+        NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
         alert.messageText = "Autototp braucht Zugriff auf „\(Permissions.accessibilityPaneName)“"
         alert.informativeText = "Nur so kann Autototp das aktive Fenster erkennen und den Code eintippen. Schalte Autototp unter \(Permissions.accessibilityPanePath) ein und drücke \(HotkeyService.displayText) erneut."
@@ -355,6 +365,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         newPanel.positionBelowStatusItem(statusItem)
         menuBarPanel = newPanel
         newPanel.makeKeyAndOrderFront(nil)
+
+        guard !demoPanel else {
+            return
+        }
 
         // Any click outside the panel closes it, like a menu.
         outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
@@ -495,8 +509,13 @@ final class FloatingPanel: NSPanel {
             .glassSurface(cornerRadius: 26)
             .padding(8))
         let hosting = NSHostingView(rootView: rootView)
+        hosting.wantsLayer = true
+        hosting.layer?.backgroundColor = .clear
         contentView = hosting
+        contentView?.wantsLayer = true
+        contentView?.layer?.backgroundColor = .clear
         setContentSize(hosting.fittingSize)
+        invalidateShadow()
     }
 
     override var canBecomeKey: Bool { true }

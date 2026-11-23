@@ -49,7 +49,7 @@ enum Exporter {
     }
 
     private static func alert(_ title: String, _ message: String) {
-        NSApp.activate()
+        NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
         alert.messageText = title
         alert.informativeText = message

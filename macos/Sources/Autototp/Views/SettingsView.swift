@@ -116,6 +116,26 @@ struct SettingsView: View {
             } header: {
                 Text("Daten")
             }
+
+            Section("Über") {
+                LabeledContent {
+                    Text(AppInfo.versionLine)
+                        .textSelection(.enabled)
+                        .monospacedDigit()
+                } label: {
+                    Text("Autototp")
+                    Text("TOTP-Codes verwalten und per \(HotkeyService.displayText) einfügen")
+                }
+                LabeledContent {
+                    Button("Neue Versionen …") {
+                        if let url = URL(string: "https://github.com/rolfwalker71-commits/autototp/releases") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                } label: {
+                    Text("Releases")
+                }
+            }
         }
         .formStyle(.grouped)
         .frame(width: 480, height: 620)

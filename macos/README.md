@@ -21,6 +21,7 @@ Es reichen die Command Line Tools (kein Xcode):
 scripts/build-app.sh             # → build/Autototp.app
 scripts/build-app.sh --install   # zusätzlich nach /Applications kopieren
 scripts/test.sh                  # Kern-Tests (TOTP RFC 6238, Matching, Import, Speicher)
+scripts/release.sh 1.2.1         # Version setzen, bauen und als GitHub-Release mit ZIP, DMG und icon.png veröffentlichen
 ```
 
 Die Skripte rufen `swiftc` direkt auf, Xcode ist optional. Das macOS-27-SDK braucht für SwiftUI ein Makro-Plugin, das nur mit Xcode kommt; ohne Xcode nimmt `build-app.sh` automatisch das neueste installierte SDK 26 (überschreibbar mit `AUTOTOTP_SDK`). `Package.swift` funktioniert mit Xcode oder mit `SDKROOT=…/MacOSX26.5.sdk swift build`.

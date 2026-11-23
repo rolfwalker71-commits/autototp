@@ -71,7 +71,12 @@ struct MenuBarView: View {
                     if let item = filtered.first { copy(item) }
                     return .handled
                 }
-            if !query.isEmpty {
+            if query.isEmpty {
+                Text("v\(AppInfo.version)")
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(.tertiary)
+                    .help("Autototp \(AppInfo.versionLine)")
+            } else {
                 Button {
                     query = ""
                 } label: {
