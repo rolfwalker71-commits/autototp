@@ -497,7 +497,8 @@ final class FloatingPanel: NSPanel {
         )
         isOpaque = false
         backgroundColor = .clear
-        hasShadow = true
+        // Kein Fensterschatten: Er legte sich als dunkle Fläche hinter die runden Ecken.
+        hasShadow = false
         isMovableByWindowBackground = true
         level = .floating
         hidesOnDeactivate = false
@@ -505,12 +506,15 @@ final class FloatingPanel: NSPanel {
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
 
         // Liquid Glass fills the whole panel; older systems get the blurred material.
-        let rootView = AnyView(content
-            .glassSurface(cornerRadius: 26)
-            .padding(8))
-        let hosting = NSHostingView(rootView: rootView)
+        // Das Fenster wird exakt auf die runde Form zugeschnitten, sonst bleibt die
+        // Trägerfläche an den Ecken als heller Rahmen sichtbar.
+        let cornerRadius: CGFloat = 26
+        let hosting = NSHostingView(rootView: AnyView(content.glassSurface(cornerRadius: cornerRadius)))
         hosting.wantsLayer = true
         hosting.layer?.backgroundColor = .clear
+        hosting.layer?.cornerRadius = cornerRadius
+        hosting.layer?.cornerCurve = .continuous
+        hosting.layer?.masksToBounds = true
         contentView = hosting
         contentView?.wantsLayer = true
         contentView?.layer?.backgroundColor = .clear
